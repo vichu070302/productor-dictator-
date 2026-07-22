@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Modal Elements
   const orderModal = document.getElementById("orderModal");
-  const closeModalBtn = document.getElementById("closeModalBtn");
+  const closeOrderModalBtn = document.getElementById("closeOrderModalBtn");
   const checkoutForm = document.getElementById("checkoutForm");
   const modalStoreName = document.getElementById("modalStoreName");
   const modalItemName = document.getElementById("modalItemName");
@@ -596,18 +596,53 @@ document.addEventListener("DOMContentLoaded", () => {
     tileLayerGroup.addTo(leafletMap);
   }
 
-  // --- 5. CHECKOUT MODAL & ORDER PROCESSING ---
+  // --- 6. CHECKOUT MODAL & ORDER PROCESSING ---
   window.openOrderModal = (storeId, storeName, pricePerKg) => {
     selectedStoreForOrder = { storeId, storeName, pricePerKg };
     modalStoreName.textContent = storeName;
-    modalItemName.textContent = resultProduceName.textContent || "Fresh Produce";
+    modalItemName.textContent = resultProduceName.textContent || "Red Gala Apple";
     modalUnitPrice.textContent = `$${pricePerKg.toFixed(2)} / kg`;
+    orderQtyInput.value = 2;
     updateModalTotal();
+
+    const orderSuccessState = document.getElementById("orderSuccessState");
+    const checkoutForm = document.getElementById("checkoutForm");
+    if (orderSuccessState) orderSuccessState.classList.add("hidden");
+    if (checkoutForm) checkoutForm.classList.remove("hidden");
+    if (closeOrderModalBtn) closeOrderModalBtn.classList.remove("hidden");
+
     orderModal.classList.remove("hidden");
   };
 
-  closeModalBtn.addEventListener("click", () => orderModal.classList.add("hidden"));
-  orderQtyInput.addEventListener("input", updateModalTotal);
+  const closeSuccessBtn = document.getElementById("closeSuccessBtn");
+  if (closeSuccessBtn) {
+    closeSuccessBtn.addEventListener("click", () => {
+      orderModal.classList.add("hidden");
+    });
+  }
+
+  const undoOrderBtn = document.getElementById("undoOrderBtn");
+  if (undoOrderBtn) {
+    undoOrderBtn.addEventListener("click", () => {
+      const orderSuccessState = document.getElementById("orderSuccessState");
+      const checkoutForm = document.getElementById("checkoutForm");
+      if (orderSuccessState) orderSuccessState.classList.add("hidden");
+      if (checkoutForm) checkoutForm.classList.remove("hidden");
+      if (closeOrderModalBtn) closeOrderModalBtn.classList.remove("hidden");
+    });
+  }
+
+  if (closeOrderModalBtn) {
+    closeOrderModalBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      orderModal.classList.add("hidden");
+    });
+  }
+
+  if (orderQtyInput) {
+    orderQtyInput.addEventListener("input", updateModalTotal);
+  }
 
   function updateModalTotal() {
     if (!selectedStoreForOrder) return;
@@ -616,37 +651,52 @@ document.addEventListener("DOMContentLoaded", () => {
     modalTotalPayable.textContent = `$${total.toFixed(2)}`;
   }
 
-  checkoutForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const qty = parseFloat(orderQtyInput.value) || 1;
-    const total = qty * selectedStoreForOrder.pricePerKg;
-    const address = document.getElementById("custAddress").value;
-    const payMethod = document.getElementById("payMethod").value;
-
-    try {
-      const res = await fetch("/api/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          storeId: selectedStoreForOrder.storeId,
-          storeName: selectedStoreForOrder.storeName,
-          itemKey: currentProduceKey,
-          itemName: resultProduceName.textContent,
-          quantityKg: qty,
-          unitPrice: selectedStoreForOrder.pricePerKg,
-          totalPrice: total,
-          deliveryAddress: address,
-          paymentMethod: payMethod
-        })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        orderModal.classList.add("hidden");
-        alert(`🎉 Order Confirmed!\n\nOrder ID: ${data.order.orderId}\nStore: ${data.order.storeName}\nEst. Delivery: ${data.order.estimatedDelivery}`);
+  if (checkoutForm) {
+    checkoutForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const confirmBtn = document.getElementById("confirmOrderBtn");
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = `⏳ Placing Store Order...`;
       }
-    } catch (err) {
-      alert("Order placement failed: " + err.message);
-    }
-  });
+
+      const qty = parseFloat(orderQtyInput.value) || 1;
+      const addr = document.getElementById("custAddress").value.trim();
+      const pay = document.getElementById("payMethod").value;
+
+      try {
+        const res = await fetch("/api/create-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            storeId: selectedStoreForOrder.storeId,
+            itemKey: currentProduceKey,
+            quantityKg: qty,
+            deliveryAddress: addr,
+            paymentMethod: pay
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const orderSuccessState = document.getElementById("orderSuccessState");
+          const successOrderDetails = document.getElementById("successOrderDetails");
+          if (successOrderDetails) {
+            successOrderDetails.textContent = `Order #${data.order.orderId} placed with ${selectedStoreForOrder.storeName} (${qty} kg ${modalItemName.textContent}). Total Paid: $${data.order.totalAmount.toFixed(2)}`;
+          }
+          if (checkoutForm) checkoutForm.classList.add("hidden");
+          if (closeOrderModalBtn) closeOrderModalBtn.classList.add("hidden");
+          if (orderSuccessState) orderSuccessState.classList.remove("hidden");
+        } else {
+          alert("Order error: " + (data.message || "Failed to process order."));
+        }
+      } catch (err) {
+        alert("Order error: " + err.message);
+      } finally {
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = `Confirm & Place Store Order`;
+        }
+      }
+    });
+  }
 });

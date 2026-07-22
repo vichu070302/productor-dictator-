@@ -62,6 +62,9 @@
             <button type="button" class="btn btn-secondary" id="browseBtn">Browse PNG Image</button>
           </div>
           <div class="image-preview-container hidden" id="previewContainer">
+            <div class="scanner-overlay">
+              <div class="laser-line"></div>
+            </div>
             <img id="imagePreview" src="" alt="Produce Preview">
             <div class="preview-overlay" id="open4kModalBtn">
               <span>🔍 Click to View 4K Ultra HD</span>
@@ -227,10 +230,10 @@
 
   <!-- Checkout / Order Modal -->
   <div class="modal-backdrop hidden" id="orderModal">
-    <div class="modal-content glass-card">
+    <div class="modal-card glass-card">
       <div class="modal-header">
         <h3>🛍️ Order Confirmation</h3>
-        <button class="btn-close" id="closeModalBtn">✕</button>
+        <button type="button" class="btn-close-modal btn-close" id="closeOrderModalBtn" aria-label="Close Order Modal">✕</button>
       </div>
       <div class="modal-body">
         <div class="order-summary-box">
@@ -269,8 +272,38 @@
               <option value="Store Pickup">Self Store Pickup</option>
             </select>
           </div>
-          <button type="submit" class="btn btn-large btn-success btn-block">Confirm & Place Store Order</button>
+          <button type="submit" class="btn btn-large btn-success btn-block glow-btn" id="confirmOrderBtn">Confirm & Place Store Order</button>
         </form>
+
+        <!-- Order Success State Overlay -->
+        <div class="order-success-state hidden" id="orderSuccessState">
+          <div class="confetti-container" id="confettiContainer">
+            <span class="confetti-particle p1">🎉</span>
+            <span class="confetti-particle p2">✨</span>
+            <span class="confetti-particle p3">🌟</span>
+            <span class="confetti-particle p4">🎊</span>
+            <span class="confetti-particle p5">🍏</span>
+            <span class="confetti-particle p6">✨</span>
+          </div>
+          <div class="success-icon-wrapper">
+            <div class="sonar-wave"></div>
+            <svg class="animated-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+              <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+              <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+          </div>
+          <div class="confirmed-stamp">ORDER CONFIRMED</div>
+          <h3>🎉 Store Order Placed Successfully!</h3>
+          <p id="successOrderDetails">Your order has been placed with the store.</p>
+          <div class="order-tracking-badge">
+            <span class="truck-icon">🚚💨</span>
+            <span>Est. Delivery: 25 - 40 Mins (Live GPS Tracked)</span>
+          </div>
+          <div class="success-actions flex-gap">
+            <button type="button" class="btn btn-outline" id="undoOrderBtn">↩️ Undo & Edit Order</button>
+            <button type="button" class="btn btn-primary glow-btn" id="closeSuccessBtn">Close & Continue Shopping</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

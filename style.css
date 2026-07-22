@@ -830,7 +830,8 @@ body {
   z-index: 200;
 }
 
-.modal-content {
+.modal-card {
+  position: relative;
   width: 100%;
   max-width: 500px;
   border-radius: 16px;
@@ -844,12 +845,30 @@ body {
   margin-bottom: 1.25rem;
 }
 
-.btn-close {
-  background: transparent;
-  border: none;
+.btn-close-modal, .btn-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--bg-card-border);
   color: var(--text-muted);
-  font-size: 1.25rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-close-modal:hover, .btn-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--danger);
+  color: #ef4444;
+  transform: scale(1.1) rotate(90deg);
 }
 
 .order-summary-box {
@@ -913,4 +932,282 @@ body {
   .grid-2col, .grid-map-stores {
     grid-template-columns: 1fr;
   }
+}
+
+/* --- PREMIUM LOOK & IMPRESSION ANIMATIONS --- */
+
+/* 1. Laser AI Scanner Overlay */
+.preview-container, .image-preview-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanner-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  border-radius: 12px;
+}
+
+.laser-line {
+  position: absolute;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #06b6d4, #10b981, #06b6d4, transparent);
+  box-shadow: 0 0 15px #06b6d4, 0 0 25px #10b981;
+  animation: laserScanMove 2.6s ease-in-out infinite alternate;
+}
+
+@keyframes laserScanMove {
+  0% { top: 3%; opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { top: 94%; opacity: 0.3; }
+}
+
+/* 2. Glassmorphism & Impression Floating Cards */
+.glass-card {
+  background: rgba(18, 26, 44, 0.75) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(6, 182, 212, 0.35) !important;
+  box-shadow: 0 16px 48px rgba(6, 182, 212, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 3. Smooth Card Slide & Entrance Animation */
+.result-card, .store-card {
+  animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 4. Glowing Shimmer Button Interactivity */
+.glow-btn, .btn-primary {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px var(--primary-glow);
+  transition: var(--transition);
+}
+
+.glow-btn::after, .btn-primary::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(60deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transform: rotate(30deg) translateY(-100%);
+  transition: transform 0.8s ease;
+}
+
+.glow-btn:hover::after, .btn-primary:hover::after {
+  transform: rotate(30deg) translateY(100%);
+}
+
+/* 5. Radial Progress Ring Glow */
+.score-box .radial-progress {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+  animation: pulseScore 3s ease-in-out infinite alternate;
+}
+
+@keyframes pulseScore {
+  0% { transform: scale(1); box-shadow: 0 0 15px rgba(16, 185, 129, 0.25); }
+  100% { transform: scale(1.04); box-shadow: 0 0 30px rgba(16, 185, 129, 0.5); }
+}
+
+/* 6. Sample Chips Micro-Floating */
+.chip {
+  transition: var(--transition);
+}
+
+.chip:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 6px 18px rgba(6, 182, 212, 0.25);
+}
+
+/* --- CONFIRM ORDER ANIMATIONS --- */
+.modal-card {
+  animation: modalScaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes modalScaleUp {
+  0% { opacity: 0; transform: scale(0.85) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.order-success-state {
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.success-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.animated-checkmark {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  stroke-width: 3;
+  stroke: #10b981;
+  stroke-miterlimit: 10;
+  box-shadow: inset 0px 0px 0px #10b981;
+  animation: checkmarkFill 0.4s ease-in-out 0.4s forwards, checkmarkScale 0.3s ease-in-out 0.9s alternate forwards;
+}
+
+.checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 3;
+  stroke-miterlimit: 10;
+  stroke: #10b981;
+  fill: none;
+  animation: strokeCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: strokeCheck 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+}
+
+@keyframes strokeCircle {
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes strokeCheck {
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes checkmarkScale {
+  0%, 100% { transform: none; }
+  50% { transform: scale3d(1.15, 1.15, 1); }
+}
+
+.order-tracking-badge {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 1.25rem 0;
+  display: inline-block;
+}
+
+/* --- CONFETTI & CELEBRATORY ORDER CONFIRMATION ANIMATIONS --- */
+.confetti-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.confetti-particle {
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0;
+  animation: confettiExplode 1.8s ease-out forwards;
+}
+
+.confetti-particle.p1 { top: 40%; left: 20%; animation-delay: 0.1s; }
+.confetti-particle.p2 { top: 35%; left: 80%; animation-delay: 0.2s; }
+.confetti-particle.p3 { top: 60%; left: 15%; animation-delay: 0.15s; }
+.confetti-particle.p4 { top: 55%; left: 75%; animation-delay: 0.25s; }
+.confetti-particle.p5 { top: 25%; left: 50%; animation-delay: 0.3s; }
+.confetti-particle.p6 { top: 70%; left: 50%; animation-delay: 0.05s; }
+
+@keyframes confettiExplode {
+  0% { transform: scale(0) translateY(0) rotate(0deg); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: scale(1.4) translateY(-90px) rotate(360deg); opacity: 0; }
+}
+
+.success-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sonar-wave {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid var(--primary);
+  opacity: 0;
+  animation: sonarPulse 2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+}
+
+@keyframes sonarPulse {
+  0% { transform: scale(0.7); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.confirmed-stamp {
+  display: inline-block;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  padding: 0.2rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  animation: stampDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s forwards;
+  opacity: 0;
+}
+
+@keyframes stampDrop {
+  0% { opacity: 0; transform: scale(3) rotate(-15deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-4deg); }
+}
+
+.truck-icon {
+  display: inline-block;
+  font-size: 1.1rem;
+  animation: truckDrive 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  margin-right: 0.35rem;
+}
+
+.flex-gap {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.flex-gap .btn {
+  flex: 1;
+}
+
+@keyframes truckDrive {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
 }
