@@ -1,196 +1,319 @@
 /**
- * AI Engine for Fruit & Vegetable Freshness & Quality Classification
+ * AI Engine - Gemini Vision Freshness Detection
  */
+require("dotenv").config();
 
-const PRODUCE_DATABASE = {
-  apple: {
-    name: "Red Gala Apple",
-    category: "Fruit",
-    scientificName: "Malus domestica",
-    shelfLifeDays: { fresh: 14, medium: 5, spoiled: 0 },
-    nutrition: { calories: "52 kcal", vitaminC: "14%", fiber: "2.4g", carbs: "13.8g" },
-    storageTips: "Store in a cool, dry place or in the crisper drawer of your refrigerator."
-  },
-  banana: {
-    name: "Cavendish Banana",
-    category: "Fruit",
-    scientificName: "Musa acuminata",
-    shelfLifeDays: { fresh: 7, medium: 3, spoiled: 0 },
-    nutrition: { calories: "89 kcal", potassium: "358mg", vitaminC: "15%", fiber: "2.6g" },
-    storageTips: "Hang bananas on a hook at room temperature to avoid pressure bruising."
-  },
-  tomato: {
-    name: "Roma Tomato",
-    category: "Vegetable / Fruit",
-    scientificName: "Solanum lycopersicum",
-    shelfLifeDays: { fresh: 10, medium: 4, spoiled: 0 },
-    nutrition: { calories: "18 kcal", lycopene: "3.0mg", vitaminC: "21%", potassium: "237mg" },
-    storageTips: "Store stems-down at room temperature away from direct sunlight."
-  },
-  orange: {
-    name: "Valencia Orange",
-    category: "Fruit",
-    scientificName: "Citrus sinensis",
-    shelfLifeDays: { fresh: 21, medium: 7, spoiled: 0 },
-    nutrition: { calories: "47 kcal", vitaminC: "89%", folate: "8%", calcium: "40mg" },
-    storageTips: "Keep at room temperature for up to a week, or refrigerate in a mesh bag."
-  },
-  spinach: {
-    name: "Fresh Baby Spinach",
-    category: "Leafy Vegetable",
-    scientificName: "Spinacia oleracea",
-    shelfLifeDays: { fresh: 6, medium: 2, spoiled: 0 },
-    nutrition: { calories: "23 kcal", iron: "15%", vitaminA: "188%", folate: "49%" },
-    storageTips: "Wrap in dry paper towels and place in an airtight container in the fridge."
-  },
-  potato: {
-    name: "Russet Potato",
-    category: "Tuber Vegetable",
-    scientificName: "Solanum tuberosum",
-    shelfLifeDays: { fresh: 30, medium: 10, spoiled: 0 },
-    nutrition: { calories: "77 kcal", potassium: "421mg", vitaminB6: "15%", carbs: "17.5g" },
-    storageTips: "Store in a dark, cool, ventilated paper bag. Keep away from onions."
-  },
-  carrot: {
-    name: "Nantes Carrot",
-    category: "Root Vegetable",
-    scientificName: "Daucus carota",
-    shelfLifeDays: { fresh: 21, medium: 8, spoiled: 0 },
-    nutrition: { calories: "41 kcal", betaCarotene: "8285mcg", fiber: "2.8g", vitaminK: "13%" },
-    storageTips: "Cut greens off before storing in a sealed plastic bag inside crisper drawer."
-  }
-};
+const { GoogleGenAI } = require("@google/genai");
 
-/**
- * Image Pre-processing & Feature Extraction Simulation
- * (Resizes, normalizes, inspects color histogram and texture metrics)
- */
-function preprocessImage(imageData, filename = "") {
-  const bufLength = imageData ? imageData.length : 12345;
-  const isTooSmall = bufLength < 500 && !filename.includes("sample");
-  
-  // Color & texture metrics simulation
-  const meanRed = (bufLength * 17) % 255;
-  const meanGreen = (bufLength * 23) % 255;
-  const meanBlue = (bufLength * 31) % 255;
-  const edgeVariance = (bufLength * 7) % 100;
+const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY
+});
 
-  return {
-    processedWidth: 224,
-    processedHeight: 224,
-    normalizedChannels: 3,
-    meanRGB: [meanRed, meanGreen, meanBlue],
-    edgeVariance,
-    isValidImage: !isTooSmall
-  };
+if (!process.env.GEMINI_API_KEY) {
+    console.log("Gemini API Key missing");
 }
 
-/**
- * Analyze image data buffer or base64 string
- */
-async function analyzeImageFreshness(imageData, filename = "", requestedItem = null) {
-  // Pre-processing
-  const prep = preprocessImage(imageData, filename);
+const PRODUCE_DATABASE = {
+    apple: {
+        name: "Apple",
+        category: "Fruit",
+        scientificName: "Malus domestica",
+        nutrition: {
+            calories: "52 kcal",
+            vitaminC: "14%",
+            fiber: "2.4 g"
+        },
+        storageTips: "Store inside a refrigerator."
+    },
 
-  const lowerName = (filename + " " + (requestedItem || "")).toLowerCase();
+    banana: {
+        name: "Banana",
+        category: "Fruit",
+        scientificName: "Musa acuminata",
+        nutrition: {
+            calories: "89 kcal",
+            potassium: "358 mg",
+            fiber: "2.6 g"
+        },
+        storageTips: "Store at room temperature."
+    },
 
-  // Error Check 1: Non-produce / invalid image data
-  if (lowerName.includes("invalid") || lowerName.includes("car") || lowerName.includes("shoe")) {
-    return {
-      success: false,
-      errorCode: "UNSUPPORTED_PRODUCE",
-      title: "❌ Unsupported Item Uploaded",
-      message: "The uploaded image does not appear to be a recognized fruit or vegetable. Please upload a clear photo of produce.",
-      confidenceScore: "18%"
-    };
-  }
+    tomato: {
+        name: "Tomato",
+        category: "Vegetable",
+        scientificName: "Solanum lycopersicum",
+        nutrition: {
+            calories: "18 kcal",
+            vitaminC: "21%"
+        },
+        storageTips: "Store away from direct sunlight."
+    },
 
-  let matchedKey = null;
-  for (const key of Object.keys(PRODUCE_DATABASE)) {
-    if (lowerName.includes(key)) {
-      matchedKey = key;
-      break;
+    orange: {
+        name: "Orange",
+        category: "Fruit",
+        scientificName: "Citrus sinensis",
+        nutrition: {
+            calories: "47 kcal",
+            vitaminC: "89%"
+        },
+        storageTips: "Keep refrigerated."
+    },
+
+    potato: {
+        name: "Potato",
+        category: "Vegetable",
+        scientificName: "Solanum tuberosum",
+        nutrition: {
+            calories: "77 kcal"
+        },
+        storageTips: "Store in a cool dark place."
+    },
+
+    spinach: {
+        name: "Spinach",
+        category: "Leafy Vegetable",
+        scientificName: "Spinacia oleracea",
+        nutrition: {
+            calories: "23 kcal",
+            iron: "15%"
+        },
+        storageTips: "Keep refrigerated."
+    },
+
+    carrot: {
+        name: "Carrot",
+        category: "Vegetable",
+        scientificName: "Daucus carota",
+        nutrition: {
+            calories: "41 kcal"
+        },
+        storageTips: "Store inside refrigerator."
     }
-  }
+};
 
-  if (!matchedKey) {
-    const keys = Object.keys(PRODUCE_DATABASE);
-    const hash = (imageData ? imageData.length : 12345) % keys.length;
-    matchedKey = keys[hash];
-  }
+function detectProduce(name) {
 
-  const baseItem = PRODUCE_DATABASE[matchedKey];
-  const seed = (imageData ? (imageData.length * 7 + 13) : Date.now()) % 100;
+    const n = name.toLowerCase();
 
-  // Error Check 2: Low Confidence state
-  if (lowerName.includes("blurry") || seed === 99) {
-    return {
-      success: false,
-      errorCode: "LOW_CONFIDENCE",
-      title: "❓ Low AI Confidence Detected",
-      message: "The image resolution or lighting is unclear. The AI model cannot determine freshness confidently. Please re-scan with better lighting.",
-      confidenceScore: "38%"
-    };
-  }
+    for (const key of Object.keys(PRODUCE_DATABASE)) {
 
-  let qualityClassification; // Must be one of 3 exact states
-  let qualityPercent;
-  let colorCue; // 'green' | 'yellow' | 'red'
+        if (n.includes(key)) {
+            return key;
+        }
 
-  if (seed > 30) {
-    qualityClassification = "Fresh/High Quality";
-    qualityPercent = Math.min(98, 82 + (seed % 17));
-    colorCue = "green";
-  } else if (seed > 12) {
-    qualityClassification = "Medium Quality/Acceptable";
-    qualityPercent = 58 + (seed % 22);
-    colorCue = "yellow";
-  } else {
-    qualityClassification = "Low Quality/Bad/Spoiled";
-    qualityPercent = 20 + (seed % 35);
-    colorCue = "red";
-  }
+    }
 
-  const spotDefectsPercent = Math.max(1, 100 - qualityPercent + (seed % 4));
-  const discolorationPercent = Math.min(95, Math.max(2, (100 - qualityPercent) * 0.85 + (seed % 5)));
-  const decaySignsPercent = colorCue === "red" ? Math.min(85, 40 + (seed % 40)) : (colorCue === "yellow" ? Math.min(25, 5 + (seed % 15)) : 0);
+    return "apple";
+}
 
-  const firmnessRating = colorCue === "green" ? "Firm & Crisp" : (colorCue === "yellow" ? "Slightly Soft" : "Overripe / Mushy / Soft Decay");
-  const shelfDays = baseItem.shelfLifeDays[colorCue === "green" ? "fresh" : (colorCue === "yellow" ? "medium" : "spoiled")];
+async function analyzeImageFreshness(imageData, filename = "", requestedItem = null) {
 
-  const confidenceScore = `${(89 + (seed % 10)).toFixed(1)}%`;
+    try {
 
-  return {
-    success: true,
-    timestamp: new Date().toISOString(),
-    preprocessing: {
-      status: "COMPLETED",
-      inputResolution: `${prep.processedWidth}x${prep.processedHeight} Normalized RGB`
-    },
-    item: {
-      key: matchedKey,
-      name: baseItem.name,
-      category: baseItem.category,
-      scientificName: baseItem.scientificName,
-    },
-    quality: {
-      classification: qualityClassification, // 'Fresh/High Quality' | 'Medium Quality/Acceptable' | 'Low Quality/Bad/Spoiled'
-      colorCue: colorCue,
-      scorePercentage: qualityPercent,
-      firmness: firmnessRating,
-      spotDefectsPercent: `${spotDefectsPercent.toFixed(1)}%`,
-      discolorationPercent: `${discolorationPercent.toFixed(1)}%`,
-      decaySignsPercent: `${decaySignsPercent.toFixed(1)}%`,
-      estimatedRemainingShelfLife: shelfDays > 0 ? `${shelfDays} Days` : "Expired / Do Not Consume",
-      displayText: `This product appears to be ${qualityClassification}`
-    },
-    confidenceScore,
-    nutrition: baseItem.nutrition,
-    storageAdvice: baseItem.storageTips
-  };
+        if (!imageData) {
+            return {
+                success: false,
+                error: "No image received"
+            };
+        }
+
+
+        // Convert image buffer to Base64
+        const base64Image = imageData.toString("base64");
+
+
+        const prompt = `
+You are an expert agricultural AI quality inspector.
+
+Analyze this fruit or vegetable image.
+
+Return ONLY JSON.
+Do not add markdown.
+Do not add explanations.
+
+JSON format:
+
+{
+ "productName":"",
+ "category":"",
+ "freshnessStatus":"",
+ "freshnessScore":0,
+ "shelfLife":"",
+ "firmness":"",
+ "defects":"",
+ "storageAdvice":"",
+ "confidence":0
+}
+
+Rules:
+
+freshnessStatus must be one of:
+- Fresh
+- Medium
+- Spoiled
+
+freshnessScore must be between 0 and 100.
+
+Analyze:
+- Color
+- Texture
+- Spots
+- Damage
+- Ripeness
+- Overall quality
+`;
+
+
+        const result = await ai.models.generateContent({
+
+            model: "gemini-2.5-flash",
+
+          contents: [
+    {
+        role: "user",
+        parts: [
+            {
+                inlineData: {
+                    mimeType: "image/jpeg",
+                    data: base64Image
+                }
+            },
+            {
+                text: prompt
+            }
+        ]
+    }
+]
+
+        });
+
+
+        let aiText = result.text;
+
+
+        // Remove possible markdown formatting
+        aiText = aiText
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
+
+
+
+        const aiData = JSON.parse(aiText);
+
+
+
+        const produceKey = detectProduce(
+            aiData.productName
+        );
+
+
+        const databaseItem = PRODUCE_DATABASE[produceKey];
+
+
+
+        return {
+
+            success: true,
+
+
+            timestamp: new Date().toISOString(),
+
+
+            item: {
+
+                key: produceKey,
+
+                name: aiData.productName ||
+                    databaseItem.name,
+
+                category:
+                    aiData.category ||
+                    databaseItem.category,
+
+                scientificName:
+                    databaseItem.scientificName
+
+            },
+
+
+            quality: {
+
+                classification:
+                    aiData.freshnessStatus,
+
+
+                scorePercentage:
+                    aiData.freshnessScore,
+
+
+                firmness:
+                    aiData.firmness,
+
+
+                spotDefectsPercent:
+                    aiData.defects,
+
+
+                discolorationPercent:
+                    "AI detected",
+
+
+                decaySignsPercent:
+                    "AI detected",
+
+
+                estimatedRemainingShelfLife:
+                    aiData.shelfLife,
+
+
+                displayText:
+                    `This product appears to be ${aiData.freshnessStatus}`
+
+            },
+
+
+            confidenceScore:
+                aiData.confidence + "%",
+
+
+            nutrition:
+                databaseItem.nutrition,
+
+
+            storageAdvice:
+                aiData.storageAdvice ||
+                databaseItem.storageTips
+
+        };
+
+
+    }
+
+    catch(error) {
+
+
+        console.error(
+            "Gemini AI Error:",
+            error
+        );
+
+
+        return {
+
+            success:false,
+
+            error:
+                error.message
+
+        };
+
+    }
+
 }
 
 module.exports = {
-  analyzeImageFreshness,
-  PRODUCE_DATABASE
+    analyzeImageFreshness,
+    PRODUCE_DATABASE
 };

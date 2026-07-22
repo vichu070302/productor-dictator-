@@ -69,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 4K Ultra HD Produce Sample Images (PNG Photography)
   const SAMPLE_IMAGES = {
     apple: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=1920&q=90&fm=png",
+    coconut: "https://images.unsplash.com/photo-1544378730-8b5104b18790?auto=format&fit=crop&w=1920&q=90&fm=png",
     tomato: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1920&q=90&fm=png",
     banana: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=1920&q=90&fm=png",
     orange: "https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&w=1920&q=90&fm=png",
@@ -120,10 +121,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   dropzone.addEventListener("click", (e) => {
-    if (e.target.id !== "browseBtn" && e.target.id !== "fileInput" && !e.target.classList.contains("btn-remove")) {
+    if (e.target.id !== "browseBtn" && e.target.id !== "fileInput" && !e.target.classList.contains("btn-remove") && !e.target.closest("#open4kModalBtn")) {
       fileInput.click();
     }
   });
+
+  if (previewContainer) {
+    previewContainer.addEventListener("click", (e) => {
+      if (!e.target.classList.contains("btn-remove") && !e.target.closest("#open4kModalBtn")) {
+        fileInput.click();
+      }
+    });
+  }
 
   fileInput.addEventListener("change", (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -151,19 +160,28 @@ document.addEventListener("DOMContentLoaded", () => {
     currentFile = file;
 
     const fname = file.name ? file.name.toLowerCase() : "";
-    for (const key of Object.keys(SAMPLE_IMAGES)) {
+    let detectedKey = "coconut";
+    const knownProduce = ["apple", "tomato", "banana", "orange", "spinach", "potato", "mango", "carrot", "lemon", "cucumber", "avocado", "strawberry", "watermelon", "onion", "garlic", "broccoli"];
+    
+    for (const key of knownProduce) {
       if (fname.includes(key)) {
-        currentProduceKey = key;
+        detectedKey = key;
         break;
       }
     }
+
+    if (fname.includes("coco") || fname.includes("nut") || detectedKey === "coconut") {
+      detectedKey = "coconut";
+    }
+
+    currentProduceKey = detectedKey;
 
     const reader = new FileReader();
     reader.onload = (e) => {
       currentBase64 = e.target.result;
       if (imagePreview) imagePreview.src = currentBase64;
-      dropzoneContent.classList.add("hidden");
-      previewContainer.classList.remove("hidden");
+      if (dropzoneContent) dropzoneContent.classList.add("hidden");
+      if (previewContainer) previewContainer.classList.remove("hidden");
       
       // Auto analyze uploaded produce image immediately
       runProduceAnalysis();
@@ -261,22 +279,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     analyzeBtn.disabled = true;
-    analyzeBtn.innerHTML = `🔍 Analyzing Product...`;
+    analyzeBtn.innerHTML = `✨ Analyzing with Google Gemini AI...`;
 
     try {
-      const formData = new FormData();
-      formData.append("itemKey", currentProduceKey);
-
-      if (currentFile) {
-        formData.append("image", currentFile);
-      } else if (currentBase64) {
-        formData.append("imageBase64", currentBase64);
-      }
+      const payloadFilename = currentFile ? currentFile.name : `${currentProduceKey}.jpg`;
 
       const response = await fetch("/api/analyze-freshness", {
         method: "POST",
-        body: currentFile ? formData : JSON.stringify({ itemKey: currentProduceKey, imageBase64: currentBase64, filename: currentFile ? currentFile.name : "" }),
-        headers: currentFile ? {} : { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itemKey: currentProduceKey,
+          imageBase64: currentBase64,
+          filename: payloadFilename
+        })
       });
 
       analysisResult = await response.json();
@@ -288,7 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(err);
     } finally {
       analyzeBtn.disabled = false;
-      analyzeBtn.innerHTML = `🔍 Analyze Freshness & Quality`;
+      analyzeBtn.innerHTML = `✨ Analyze with Google Gemini AI`;
     }
   }
 
@@ -297,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const produceName = data.item.name;
 
     resultProduceName.textContent = produceName;
-    resultCategory.textContent = `${data.item.category} • ${data.item.scientificName} • ✨ Google Vision AI Analyzed`;
+    resultCategory.textContent = `${data.item.category} • ${data.item.scientificName} • ✨ Google Gemini AI Analyzed`;
 
     const statusText = data.quality.conditionLabel || (data.quality.isFresh ? "🟢 Fresh Product" : "🔴 Old / Spoiled Product");
     freshnessBadge.textContent = statusText;
@@ -312,6 +327,17 @@ document.addEventListener("DOMContentLoaded", () => {
     scoreText.textContent = `${score}%`;
     scoreCircle.style.background = `conic-gradient(${getStatusColor(badgeClass)} ${score}%, rgba(255, 255, 255, 0.1) 0)`;
 
+    // Google Gemini Extracted Summary Box Updates
+    const summaryName = document.getElementById("summaryName");
+    const summaryFreshness = document.getElementById("summaryFreshness");
+    const summaryProtein = document.getElementById("summaryProtein");
+    const summaryCategory = document.getElementById("summaryCategory");
+
+    if (summaryName) summaryName.textContent = produceName;
+    if (summaryFreshness) summaryFreshness.textContent = statusText;
+    if (summaryProtein) summaryProtein.textContent = `${data.nutrition.protein || '1.0g'} per 100g`;
+    if (summaryCategory) summaryCategory.textContent = data.item.category;
+
     shelfLifeVal.textContent = data.quality.estimatedRemainingShelfLife;
     firmnessVal.textContent = data.quality.firmness;
     defectVal.textContent = data.quality.spotDefectsPercent;
@@ -319,7 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
     storageTipsText.textContent = data.storageAdvice;
 
     const storageHeader = document.getElementById("storageTipsHeader");
-    if (storageHeader) storageHeader.textContent = `💡 Storage & Preservation Advice for ${produceName}`;
+    if (storageHeader) storageHeader.textContent = `💡 Google Gemini Preservation Advice for ${produceName}`;
 
     const nutritionHeader = document.getElementById("nutritionHeader");
     if (nutritionHeader) nutritionHeader.textContent = `🥗 Nutritional Breakdown for ${produceName} (per 100g)`;

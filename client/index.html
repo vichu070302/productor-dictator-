@@ -38,27 +38,29 @@
     <div class="container hero-content">
       <span class="badge-pill">✨ Computer Vision & Smart Procurement</span>
       <h1>Fruit & Vegetable Freshness Detection with Local Store Integration</h1>
-      <p>Upload any produce photo to detect freshness status, quality percentage, and remaining shelf life instantly. Locate matching stock within 10 km at real-time APMC Agmarknet prices.</p>
+      <p>Upload any produce photo to detect freshness status, quality percentage, and remaining shelf life instantly. Locate matching stock within 20 km at real-time APMC Agmarknet prices.</p>
     </div>
   </section>
 
-  <!-- Main App Workspace -->
-  <main class="container app-workspace">
-    
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Scanner & Diagnostics 2-Column Grid -->
     <div class="grid-2col">
-      <!-- Left Panel: Upload & Scan Produce -->
-      <div class="card glass-card upload-card">
+
+      <!-- Left Panel: Produce Scanner & Upload Workstation -->
+      <div class="card glass-card scanner-card">
         <div class="card-header">
-          <h2>1. Upload & Scan Produce</h2>
-          <p>Drop an image or select a sample fruit/vegetable</p>
+          <h2>Upload Produce Image</h2>
+          <p>Select or drag-and-drop produce photo for Google Gemini AI inspection</p>
         </div>
 
         <div class="dropzone" id="dropzone">
           <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" class="file-input">
           <div class="dropzone-content" id="dropzoneContent">
-            <div class="upload-icon">📸</div>
-            <h3>Drag & drop your produce photo here</h3>
-            <p>PNG Images Preferred (Supports PNG, JPG, WEBP)</p>
+            <span class="upload-icon">📸</span>
+            <p><strong>Drag & drop your PNG/JPG image here</strong></p>
+            <span class="sub-text">Supports HD produce photos from mobile or desktop</span>
             <button type="button" class="btn btn-secondary" id="browseBtn">Browse PNG Image</button>
           </div>
           <div class="image-preview-container hidden" id="previewContainer">
@@ -85,6 +87,7 @@
           <span>Or test quick sample produce:</span>
           <div class="preset-chips">
             <button class="chip active" data-sample="apple">🍎 Red Apple</button>
+            <button class="chip" data-sample="coconut">🥥 Coconut</button>
             <button class="chip" data-sample="tomato">🍅 Roma Tomato</button>
             <button class="chip" data-sample="banana">🍌 Banana</button>
             <button class="chip" data-sample="orange">🍊 Orange</button>
@@ -94,7 +97,7 @@
         </div>
 
         <button class="btn btn-large btn-accent btn-block glow-btn" id="analyzeBtn">
-          🔍 Analyze Freshness & Quality
+          ✨ Analyze with Google Gemini AI
         </button>
       </div>
 
@@ -103,9 +106,32 @@
         <div class="card-header flex-between">
           <div>
             <h2 id="resultProduceName">Red Gala Apple</h2>
-            <span class="sub-text" id="resultCategory">Fruit • Malus domestica</span>
+            <span class="sub-text" id="resultCategory">Fruit • Malus domestica • ✨ Google Gemini AI</span>
           </div>
           <span class="status-badge fresh" id="freshnessBadge">Fresh</span>
+        </div>
+
+        <!-- Google Gemini AI Extracted Summary Box -->
+        <div class="gemini-summary-box" id="geminiSummaryBox">
+          <div class="gemini-badge">✨ Google Gemini AI Analysis Summary</div>
+          <div class="summary-grid">
+            <div class="summary-chip">
+              <span class="chip-label">Product Name</span>
+              <strong id="summaryName">Red Gala Apple</strong>
+            </div>
+            <div class="summary-chip">
+              <span class="chip-label">Freshness Condition</span>
+              <strong id="summaryFreshness">🟢 Fresh Product</strong>
+            </div>
+            <div class="summary-chip">
+              <span class="chip-label">Protein Content</span>
+              <strong id="summaryProtein">0.3g per 100g</strong>
+            </div>
+            <div class="summary-chip">
+              <span class="chip-label">Produce Category</span>
+              <strong id="summaryCategory">Fruit (Fresh)</strong>
+            </div>
+          </div>
         </div>
 
         <!-- Quality Metrics Grid -->
@@ -135,7 +161,7 @@
 
         <!-- Preservation & Storage Tips -->
         <div class="info-block">
-          <h4 id="storageTipsHeader">💡 Storage & Preservation Advice for Red Gala Apple</h4>
+          <h4 id="storageTipsHeader">💡 Google Gemini Preservation Advice for Red Gala Apple</h4>
           <p id="storageTipsText">Store in a cool, dry place or in the crisper drawer of your refrigerator. Keep away from ethylene-sensitive produce.</p>
         </div>
 
@@ -156,7 +182,7 @@
             <p>Find local markets within 20 km with live Agmarknet daily price matching.</p>
           </div>
           <button class="btn btn-large btn-success btn-block glow-btn" id="purchaseNowBtn">
-            🛒 Purchase Now (Detect Nearby Stores & Prices)
+            🛒 Purchase Now (Detect 20 KM Shops with Google Gemini)
           </button>
         </div>
       </div>
@@ -166,8 +192,8 @@
     <section class="store-section hidden" id="storeSection">
       <div class="section-header flex-between">
         <div>
-          <h2>Smart Nearby Stores & Stock Finder</h2>
-          <p>Locating active stock for <strong id="selectedProduceName">Red Gala Apple</strong> within 20 KM Radius</p>
+          <h2>Google Gemini Nearby Fruit & Vegetable Shops Finder</h2>
+          <p>Detecting fruits & vegetables shops for <strong id="selectedProduceName">Red Gala Apple</strong> within 20 KM Radius</p>
         </div>
         <div class="location-controls">
           <button class="btn btn-outline" id="detectLocationBtn">📍 Detect GPS Location</button>
