@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgriFresh - AI Produce Freshness Detector & Smart Store Locator</title>
+  <meta name="description" content="AI-powered fruit & vegetable freshness detection, Agmarknet daily market price matching, and smart 10 km local store purchase integration.">
+  <!-- Google Fonts & Leaflet Map CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <span class="logo-icon">🌱</span>
+        <span class="logo-text">Agri<span class="highlight">Fresh</span> AI</span>
+      </div>
+      <div class="live-ticker">
+        <span class="ticker-badge">AGMARKNET LIVE</span>
+        <span class="ticker-text" id="marketTicker">Apple: $2.80/kg | Tomato: $1.50/kg | Banana: $1.20/kg | Orange: $2.10/kg</span>
+      </div>
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="webcamBtn">📷 Live Camera</button>
+        <a href="#storeSection" class="btn btn-primary">🛒 Nearby Stores</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+      <span class="badge-pill">✨ Computer Vision & Smart Procurement</span>
+      <h1>Fruit & Vegetable Freshness Detection with Local Store Integration</h1>
+      <p>Upload any produce photo to detect freshness status, quality percentage, and remaining shelf life instantly. Locate matching stock within 10 km at real-time APMC Agmarknet prices.</p>
+    </div>
+  </section>
+
+  <!-- Main App Workspace -->
+  <main class="container app-workspace">
+    
+    <div class="grid-2col">
+      <!-- Left Panel: Upload & Scan Produce -->
+      <div class="card glass-card upload-card">
+        <div class="card-header">
+          <h2>1. Upload & Scan Produce</h2>
+          <p>Drop an image or select a sample fruit/vegetable</p>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" class="file-input">
+          <div class="dropzone-content" id="dropzoneContent">
+            <div class="upload-icon">📸</div>
+            <h3>Drag & drop your produce photo here</h3>
+            <p>PNG Images Preferred (Supports PNG, JPG, WEBP)</p>
+            <button type="button" class="btn btn-secondary" id="browseBtn">Browse PNG Image</button>
+          </div>
+          <div class="image-preview-container hidden" id="previewContainer">
+            <img id="imagePreview" src="" alt="Produce Preview">
+            <div class="preview-overlay" id="open4kModalBtn">
+              <span>🔍 Click to View 4K Ultra HD</span>
+            </div>
+            <button type="button" class="btn-remove" id="removeImgBtn">✕ Remove</button>
+          </div>
+        </div>
+
+        <div class="video-container hidden" id="videoContainer">
+          <video id="webcamVideo" autoplay playsinline></video>
+          <div class="camera-controls">
+            <button class="btn btn-primary" id="captureBtn">📸 Capture Snapshot</button>
+            <button class="btn btn-outline" id="closeCameraBtn">Close Camera</button>
+          </div>
+        </div>
+
+        <div class="sample-presets">
+          <span>Or test quick sample produce:</span>
+          <div class="preset-chips">
+            <button class="chip active" data-sample="apple">🍎 Red Apple</button>
+            <button class="chip" data-sample="tomato">🍅 Roma Tomato</button>
+            <button class="chip" data-sample="banana">🍌 Banana</button>
+            <button class="chip" data-sample="orange">🍊 Orange</button>
+            <button class="chip" data-sample="spinach">🥬 Baby Spinach</button>
+            <button class="chip" data-sample="potato">🥔 Potato</button>
+          </div>
+        </div>
+
+        <button class="btn btn-large btn-accent btn-block glow-btn" id="analyzeBtn">
+          🔍 Analyze Freshness & Quality
+        </button>
+      </div>
+
+      <!-- Right Panel: AI Diagnostics & Quality Result -->
+      <div class="card glass-card result-card" id="resultCard">
+        <div class="card-header flex-between">
+          <div>
+            <h2 id="resultProduceName">Red Gala Apple</h2>
+            <span class="sub-text" id="resultCategory">Fruit • Malus domestica</span>
+          </div>
+          <span class="status-badge fresh" id="freshnessBadge">Fresh</span>
+        </div>
+
+        <!-- Quality Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-box score-box">
+            <div class="radial-progress" id="scoreCircle">
+              <span id="scoreText">92%</span>
+            </div>
+            <span class="metric-label">Quality Score</span>
+          </div>
+
+          <div class="metric-box">
+            <span class="metric-val" id="shelfLifeVal">14 Days</span>
+            <span class="metric-label">Est. Shelf Life</span>
+          </div>
+
+          <div class="metric-box">
+            <span class="metric-val" id="firmnessVal">Firm & Crisp</span>
+            <span class="metric-label">Texture / Firmness</span>
+          </div>
+
+          <div class="metric-box">
+            <span class="metric-val" id="defectVal">4%</span>
+            <span class="metric-label">Surface Blemishes</span>
+          </div>
+        </div>
+
+        <!-- Preservation & Storage Tips -->
+        <div class="info-block">
+          <h4 id="storageTipsHeader">💡 Storage & Preservation Advice for Red Gala Apple</h4>
+          <p id="storageTipsText">Store in a cool, dry place or in the crisper drawer of your refrigerator. Keep away from ethylene-sensitive produce.</p>
+        </div>
+
+        <!-- Nutrition Summary -->
+        <div class="info-block">
+          <h4 id="nutritionHeader">🥗 Nutritional Breakdown for Red Gala Apple (per 100g)</h4>
+          <div class="nutrition-tags" id="nutritionTags">
+            <span class="tag">Calories: 52 kcal</span>
+            <span class="tag">Vitamin C: 14%</span>
+            <span class="tag">Fiber: 2.4g</span>
+          </div>
+        </div>
+
+        <!-- Action Callout & Location Trigger -->
+        <div class="purchase-callout">
+          <div class="callout-header">
+            <h3>Need More Fresh <span id="purchaseItemName">Red Gala Apples</span>?</h3>
+            <p>Find local markets within 20 km with live Agmarknet daily price matching.</p>
+          </div>
+          <button class="btn btn-large btn-success btn-block glow-btn" id="purchaseNowBtn">
+            🛒 Purchase Now (Detect Nearby Stores & Prices)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Store Locator & Price Comparison Section -->
+    <section class="store-section hidden" id="storeSection">
+      <div class="section-header flex-between">
+        <div>
+          <h2>Smart Nearby Stores & Stock Finder</h2>
+          <p>Locating active stock for <strong id="selectedProduceName">Red Gala Apple</strong> within 20 KM Radius</p>
+        </div>
+        <div class="location-controls">
+          <button class="btn btn-outline" id="detectLocationBtn">📍 Detect GPS Location</button>
+          <select id="radiusSelect" class="select-input">
+            <option value="5">5 KM Radius</option>
+            <option value="10">10 KM Radius</option>
+            <option value="20" selected>20 KM Radius</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Gentle Geolocation Fallback / Status Notification -->
+      <div class="geo-notification hidden" id="geoNotification">
+        <span class="geo-notification-icon">⚠️</span>
+        <span class="geo-notification-text" id="geoNotificationText">Location access denied or unavailable. Displaying default location. Please enable location access for accurate 20 KM nearby store results.</span>
+        <button type="button" class="btn btn-outline btn-sm" id="retryGeoBtn">🔄 Grant Location Access</button>
+      </div>
+
+      <!-- Agmarknet Market Rate Benchmark Banner -->
+      <div class="benchmark-banner" id="benchmarkBanner">
+        <div class="banner-item">
+          <span class="banner-label" id="benchmarkTitle">AGMARKNET APMC Rate for Red Gala Apple</span>
+          <strong class="banner-value" id="mandiPriceVal">$2.80 / kg</strong>
+        </div>
+        <div class="banner-item">
+          <span class="banner-label">Market Daily Trend</span>
+          <span class="banner-trend" id="mandiTrendVal">-3.2% vs yesterday</span>
+        </div>
+        <div class="banner-item">
+          <span class="banner-label">Quality Grade</span>
+          <span id="mandiGradeVal">A Grade Gala</span>
+        </div>
+      </div>
+
+      <!-- Map & Stores Grid -->
+      <div class="grid-map-stores">
+        <!-- Interactive Google Map with Search -->
+        <div class="map-card glass-card">
+          <div class="map-search-bar">
+            <div class="search-input-group">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="mapSearchInput" placeholder="Search any city, address, or place..." class="map-search-input">
+              <button type="button" class="btn btn-primary btn-search" id="mapSearchBtn">Search Place</button>
+            </div>
+            <div class="map-style-badge">
+              <span class="badge-google">🗺️ Google Map View</span>
+            </div>
+          </div>
+          <div id="map"></div>
+        </div>
+
+        <!-- Store List Cards -->
+        <div class="stores-list" id="storesList">
+          <!-- Dynamically populated store cards -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Checkout / Order Modal -->
+  <div class="modal-backdrop hidden" id="orderModal">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <h3>🛍️ Order Confirmation</h3>
+        <button class="btn-close" id="closeModalBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="order-summary-box">
+          <div class="summary-row">
+            <span>Store:</span>
+            <strong id="modalStoreName">Green Leaf Organic Mart</strong>
+          </div>
+          <div class="summary-row">
+            <span>Item:</span>
+            <strong id="modalItemName">Red Gala Apple</strong>
+          </div>
+          <div class="summary-row">
+            <span>Unit Price:</span>
+            <span id="modalUnitPrice">$2.58 / kg</span>
+          </div>
+          <div class="summary-row">
+            <span>Quantity (kg):</span>
+            <input type="number" id="orderQtyInput" min="1" max="50" value="2" class="qty-input">
+          </div>
+          <div class="summary-row total-row">
+            <span>Total Payable:</span>
+            <strong id="modalTotalPayable">$5.16</strong>
+          </div>
+        </div>
+
+        <form id="checkoutForm">
+          <div class="form-group">
+            <label for="custAddress">Delivery Address / GPS Coordinates</label>
+            <input type="text" id="custAddress" required placeholder="Coordinates: 28.6139, 77.2090 (or enter home address)" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="payMethod">Payment Method</label>
+            <select id="payMethod" class="form-input">
+              <option value="UPI / Cash on Delivery">Cash on Delivery / UPI</option>
+              <option value="Credit / Debit Card">Credit / Debit Card</option>
+              <option value="Store Pickup">Self Store Pickup</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-large btn-success btn-block">Confirm & Place Store Order</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4K Ultra HD Full Image Lightbox Modal -->
+  <div class="modal-backdrop hidden" id="hd4kModal">
+    <div class="lightbox-content">
+      <button type="button" class="btn-close-lightbox" id="close4kModalBtn">✕ Close 4K View</button>
+      <img id="hd4kImageDisplay" src="" alt="4K Ultra HD Produce View">
+      <div class="lightbox-caption" id="hd4kCaption">🍎 4K Ultra HD Produce Inspection View</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>© 2026 AgriFresh AI. Computer Vision Produce Freshness & Agmarknet Local Procurement Integration.</p>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="app.js"></script>
+</body>
+</html>
