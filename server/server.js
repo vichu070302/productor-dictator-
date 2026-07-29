@@ -18,7 +18,6 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Multer memory storage for direct buffer processing
-// Multer memory storage for direct buffer processing
 const storage = multer.memoryStorage();
 
 const upload = multer({
@@ -30,6 +29,7 @@ const upload = multer({
 
 // Serve static frontend files from client directory
 app.use(express.static(path.join(__dirname, '../client')));
+app.use(express.static(path.join(__dirname, '..')));
 
 /**
  * Endpoint: API Health Check
@@ -50,39 +50,35 @@ app.get('/api/produce-catalog', (req, res) => {
  */
 app.post('/api/analyze-freshness', async (req, res) => {
   try {
-    const { imageBase64, filename } = req.body;
+    const { imageBase64, filename, itemKey } = req.body;
 
-    if (!imageBase64) {
+    if (!imageBase64 && !filename && !itemKey) {
       return res.status(400).json({ success: false, error: "No image data provided" });
     }
 
-    // Base64 ഡാറ്റയിൽ നിന്ന് 'data:image/jpeg;base64,' എന്ന ഭാഗം ഒഴിവാക്കുക
-    const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const cleanBase64 = imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, "") : "";
 
-    const result = await analyzeImageFreshness(cleanBase64, filename);
+    const result = await analyzeImageFreshness(cleanBase64, filename || itemKey || "");
     res.json(result);
   } catch (error) {
     console.error("Freshness Analysis API Error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
 /**
- * Endpoint: Nearby Stores & 10 KM Radius Stock Finder
+ * Endpoint: Nearby Stores & 20 KM Radius Stock Finder
  */
-/**
- * Endpoint: Nearby Stores & Radius Stock Finder
- */
-app.get('/api/nearby-stores', async (req, res) => { // <-- ഇവിടെ 'async' ചേർക്കുക
+app.get('/api/nearby-stores', async (req, res) => {
   try {
-    const { lat, lng, itemKey = "apple", radius = 10 } = req.query;
+    const { lat, lng, itemKey = "apple", radius = 20, placeName = "" } = req.query;
     
-    // ഇവിടെ getNearbyStores-ന് മുന്നിൽ 'await' എന്ന് ചേർക്കുക
-    const stores = await getNearbyStores(lat, lng, itemKey, parseFloat(radius));
+    const stores = await getNearbyStores(parseFloat(lat) || 28.6139, parseFloat(lng) || 77.2090, itemKey, parseFloat(radius));
     const priceData = getStorePricesForProduce(itemKey, stores);
 
     res.json({
       success: true,
-      userLocation: { lat: parseFloat(lat) || 28.6139, lng: parseFloat(lng) || 77.2090 },
+      userLocation: { lat: parseFloat(lat) || 28.6139, lng: parseFloat(lng) || 77.2090, placeName },
       searchRadiusKm: parseFloat(radius),
       itemKey,
       totalStoresFound: stores.length,
@@ -124,13 +120,13 @@ app.post('/api/create-order', (req, res) => {
       success: true,
       order: {
         orderId,
-        storeId,
-        storeName,
-        itemKey,
-        itemName,
-        quantityKg,
-        unitPrice,
-        totalPrice,
+        storeId: storeId || "store_01",
+        storeName: storeName || "Green Leaf Organic Mart",
+        itemKey: itemKey || "produce",
+        itemName: itemName || "Fresh Produce",
+        quantityKg: quantityKg || 1,
+        unitPrice: unitPrice || 2.50,
+        totalPrice: totalPrice || (quantityKg * unitPrice) || 5.00,
         deliveryAddress: deliveryAddress || "User GPS Coordinates",
         paymentMethod: paymentMethod || "Cash / UPI on Delivery",
         status: "Confirmed",
@@ -144,11 +140,10 @@ app.post('/api/create-order', (req, res) => {
   }
 });
 
-// Fallback route for single page app client
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/index.html'));
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 AgriFresh Server running on http://localhost:${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`🚀 AgriFresh Server running on http://localhost:${PORT}`);
-});
+module.exports = app;
