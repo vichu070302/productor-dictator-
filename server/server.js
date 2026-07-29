@@ -14,8 +14,8 @@ const PORT = process.env.PORT || 5000;
 
 // Enable CORS and JSON parsing
 app.use(cors());
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Multer memory storage for direct buffer processing
 // Multer memory storage for direct buffer processing
@@ -48,36 +48,36 @@ app.get('/api/produce-catalog', (req, res) => {
 /**
  * Endpoint: Image Upload & Freshness Detection
  */
-app.post('/api/analyze-freshness', upload.single('image'), async (req, res) => {
+app.post('/api/analyze-freshness', async (req, res) => {
   try {
-    let imageBuffer = null;
-    let filename = "";
-    let itemHint = req.body.itemKey || "";
+    const { imageBase64, filename } = req.body;
 
-    if (req.file) {
-      imageBuffer = req.file.buffer;
-      filename = req.file.originalname;
-    } else if (req.body.imageBase64) {
-      const base64Data = req.body.imageBase64.replace(/^data:image\/\w+;base64,/, '');
-      imageBuffer = Buffer.from(base64Data, 'base64');
-      filename = "webcam_capture.jpg";
+    if (!imageBase64) {
+      return res.status(400).json({ success: false, error: "No image data provided" });
     }
 
-    const result = await analyzeImageFreshness(imageBuffer, filename, itemHint);
+    // Base64 ഡാറ്റയിൽ നിന്ന് 'data:image/jpeg;base64,' എന്ന ഭാഗം ഒഴിവാക്കുക
+    const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+
+    const result = await analyzeImageFreshness(cleanBase64, filename);
     res.json(result);
   } catch (error) {
-    console.error("Error analyzing freshness:", error);
-    res.status(500).json({ success: false, error: "Failed to process image analysis" });
+    console.error("Freshness Analysis API Error:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
-
 /**
  * Endpoint: Nearby Stores & 10 KM Radius Stock Finder
  */
-app.get('/api/nearby-stores', (req, res) => {
+/**
+ * Endpoint: Nearby Stores & Radius Stock Finder
+ */
+app.get('/api/nearby-stores', async (req, res) => { // <-- ഇവിടെ 'async' ചേർക്കുക
   try {
     const { lat, lng, itemKey = "apple", radius = 10 } = req.query;
-    const stores = getNearbyStores(lat, lng, itemKey, parseFloat(radius));
+    
+    // ഇവിടെ getNearbyStores-ന് മുന്നിൽ 'await' എന്ന് ചേർക്കുക
+    const stores = await getNearbyStores(lat, lng, itemKey, parseFloat(radius));
     const priceData = getStorePricesForProduce(itemKey, stores);
 
     res.json({

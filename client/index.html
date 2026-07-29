@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AgriFresh - AI Produce Freshness Detector & Smart Store Locator</title>
-  <meta name="description" content="AI-powered fruit & vegetable freshness detection, Agmarknet daily market price matching, and smart 10 km local store purchase integration.">
+  <meta name="description" content="AI-powered fruit & vegetable freshness detection, Agmarknet daily market price matching, and smart 20 km local store purchase integration.">
   <!-- Google Fonts & Leaflet Map CSS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +23,7 @@
       </div>
       <div class="live-ticker">
         <span class="ticker-badge">AGMARKNET LIVE</span>
-        <span class="ticker-text" id="marketTicker">Apple: $2.80/kg | Tomato: $1.50/kg | Banana: $1.20/kg | Orange: $2.10/kg</span>
+        <span class="ticker-text" id="marketTicker">Apple: $2.80/kg | Tomato: $1.50/kg | Banana: $1.20/kg | Orange: $2.10/kg | Coconut: $1.80/ea</span>
       </div>
       <div class="nav-actions">
         <button class="btn btn-outline" id="webcamBtn">📷 Live Camera</button>
@@ -57,17 +57,17 @@
 
         <div class="dropzone" id="dropzone">
           <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" class="file-input">
-          <div class="dropzone-content" id="dropzoneContent">
+          <div class="dropzone-content hidden" id="dropzoneContent">
             <span class="upload-icon">📸</span>
-            <p><strong>Drag & drop your PNG/JPG image here</strong></p>
+            <p><strong>Drag & drop your produce image here</strong></p>
             <span class="sub-text">Supports HD produce photos from mobile or desktop</span>
-            <button type="button" class="btn btn-secondary" id="browseBtn">Browse PNG Image</button>
+            <button type="button" class="btn btn-secondary" id="browseBtn">Browse Image File</button>
           </div>
-          <div class="image-preview-container hidden" id="previewContainer">
+          <div class="image-preview-container" id="previewContainer">
             <div class="scanner-overlay">
               <div class="laser-line"></div>
             </div>
-            <img id="imagePreview" src="" alt="Produce Preview">
+            <img id="imagePreview" src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=1920&q=90&fm=png" alt="Produce Preview">
             <div class="preview-overlay" id="open4kModalBtn">
               <span>🔍 Click to View 4K Ultra HD</span>
             </div>
@@ -86,13 +86,13 @@
         <div class="sample-presets">
           <span>Or test quick sample produce:</span>
           <div class="preset-chips">
-            <button class="chip active" data-sample="apple">🍎 Red Apple</button>
-            <button class="chip" data-sample="coconut">🥥 Coconut</button>
-            <button class="chip" data-sample="tomato">🍅 Roma Tomato</button>
-            <button class="chip" data-sample="banana">🍌 Banana</button>
-            <button class="chip" data-sample="orange">🍊 Orange</button>
-            <button class="chip" data-sample="spinach">🥬 Baby Spinach</button>
-            <button class="chip" data-sample="potato">🥔 Potato</button>
+            <button type="button" class="chip active" data-sample="apple">🍎 Red Apple</button>
+            <button type="button" class="chip" data-sample="coconut">🥥 Coconut</button>
+            <button type="button" class="chip" data-sample="tomato">🍅 Roma Tomato</button>
+            <button type="button" class="chip" data-sample="banana">🍌 Banana</button>
+            <button type="button" class="chip" data-sample="orange">🍊 Orange</button>
+            <button type="button" class="chip" data-sample="spinach">🥬 Baby Spinach</button>
+            <button type="button" class="chip" data-sample="potato">🥔 Potato</button>
           </div>
         </div>
 
@@ -113,7 +113,7 @@
 
         <!-- Google Gemini AI Extracted Summary Box -->
         <div class="gemini-summary-box" id="geminiSummaryBox">
-          <div class="gemini-badge">✨ Google Gemini AI Analysis Summary</div>
+          <div class="gemini-badge">✨ GOOGLE GEMINI AI ANALYSIS SUMMARY</div>
           <div class="summary-grid">
             <div class="summary-chip">
               <span class="chip-label">Product Name</span>
@@ -172,13 +172,14 @@
             <span class="tag">Calories: 52 kcal</span>
             <span class="tag">Vitamin C: 14%</span>
             <span class="tag">Fiber: 2.4g</span>
+            <span class="tag">Protein: 0.3g</span>
           </div>
         </div>
 
         <!-- Action Callout & Location Trigger -->
         <div class="purchase-callout">
           <div class="callout-header">
-            <h3>Need More Fresh <span id="purchaseItemName">Red Gala Apples</span>?</h3>
+            <h3>Need More Fresh <span id="purchaseItemName">Red Gala Apple</span>?</h3>
             <p>Find local markets within 20 km with live Agmarknet daily price matching.</p>
           </div>
           <button class="btn btn-large btn-success btn-block glow-btn" id="purchaseNowBtn">
@@ -339,7 +340,7 @@
     <div class="lightbox-content">
       <button type="button" class="btn-close-lightbox" id="close4kModalBtn">✕ Close 4K View</button>
       <img id="hd4kImageDisplay" src="" alt="4K Ultra HD Produce View">
-      <div class="lightbox-caption" id="hd4kCaption">🍎 4K Ultra HD Produce Inspection View</div>
+      <div class="lightbox-caption" id="hd4kCaption">🔍 4K Ultra HD Produce Inspection View</div>
     </div>
   </div>
 

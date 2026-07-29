@@ -1,5 +1,6 @@
 /**
- * AgriFresh Client Application Logic - Root Application Copy
+ * AgriFresh Client Application Logic - Dynamic Google Gemini AI Vision Edition
+ * Matches exact UI design specifications for produce upload and AI inspection analysis.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -30,10 +31,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const shelfLifeVal = document.getElementById("shelfLifeVal");
   const firmnessVal = document.getElementById("firmnessVal");
   const defectVal = document.getElementById("defectVal");
+  const storageTipsHeader = document.getElementById("storageTipsHeader");
   const storageTipsText = document.getElementById("storageTipsText");
+  const nutritionHeader = document.getElementById("nutritionHeader");
   const nutritionTags = document.getElementById("nutritionTags");
+  const summaryName = document.getElementById("summaryName");
+  const summaryFreshness = document.getElementById("summaryFreshness");
+  const summaryProtein = document.getElementById("summaryProtein");
+  const summaryCategory = document.getElementById("summaryCategory");
   const purchaseItemName = document.getElementById("purchaseItemName");
   const purchaseNowBtn = document.getElementById("purchaseNowBtn");
+
+  // Preset Chips
+  const presetChips = document.querySelectorAll(".preset-chips .chip");
 
   // Store Locator Elements
   const storeSection = document.getElementById("storeSection");
@@ -44,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const mandiPriceVal = document.getElementById("mandiPriceVal");
   const mandiTrendVal = document.getElementById("mandiTrendVal");
   const mandiGradeVal = document.getElementById("mandiGradeVal");
+  const benchmarkTitle = document.getElementById("benchmarkTitle");
 
   // Modal Elements
   const orderModal = document.getElementById("orderModal");
@@ -55,18 +66,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const orderQtyInput = document.getElementById("orderQtyInput");
   const modalTotalPayable = document.getElementById("modalTotalPayable");
 
-  // State Variables
-  let currentFile = null;
-  let currentBase64 = null;
-  let currentProduceKey = "apple";
-  let analysisResult = null;
-  let userCoords = { lat: 28.6139, lng: 77.2090 };
-  let leafletMap = null;
-  let mapMarkers = [];
-  let mediaStream = null;
-  let selectedStoreForOrder = null;
+  // 4K Lightbox Modal Elements
+  const open4kModalBtn = document.getElementById("open4kModalBtn");
+  const hd4kModal = document.getElementById("hd4kModal");
+  const close4kModalBtn = document.getElementById("close4kModalBtn");
+  const hd4kImageDisplay = document.getElementById("hd4kImageDisplay");
+  const hd4kCaption = document.getElementById("hd4kCaption");
 
-  // 4K Ultra HD Produce Sample Images (PNG Photography)
+  // Sample Produce Preset Images (4K Photography)
   const SAMPLE_IMAGES = {
     apple: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=1920&q=90&fm=png",
     coconut: "https://images.unsplash.com/photo-1544378730-8b5104b18790?auto=format&fit=crop&w=1920&q=90&fm=png",
@@ -77,18 +84,26 @@ document.addEventListener("DOMContentLoaded", () => {
     potato: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=1920&q=90&fm=png"
   };
 
-  // 4K Lightbox Modal Elements
-  const open4kModalBtn = document.getElementById("open4kModalBtn");
-  const hd4kModal = document.getElementById("hd4kModal");
-  const close4kModalBtn = document.getElementById("close4kModalBtn");
-  const hd4kImageDisplay = document.getElementById("hd4kImageDisplay");
-  const hd4kCaption = document.getElementById("hd4kCaption");
+  // State Variables
+  let currentFile = null;
+  let currentBase64 = SAMPLE_IMAGES.apple;
+  let currentProduceKey = "apple";
+  let currentProduceName = "Red Gala Apple";
+  let analysisResult = null;
+  let userCoords = { lat: 28.6139, lng: 77.2090 }; // Default GPS
+  let currentPlaceName = "";
+  let leafletMap = null;
+  let mapMarkers = [];
+  let mediaStream = null;
+  let selectedStoreForOrder = null;
 
+  // 4K Lightbox Handlers
   if (open4kModalBtn) {
-    open4kModalBtn.addEventListener("click", () => {
+    open4kModalBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
       if (imagePreview && imagePreview.src) {
         hd4kImageDisplay.src = imagePreview.src;
-        hd4kCaption.textContent = `🔍 4K Ultra HD View: ${capitalize(currentProduceKey)} Inspection`;
+        hd4kCaption.textContent = `🔍 4K Ultra HD View: ${currentProduceName || "Produce Inspection"}`;
         hd4kModal.classList.remove("hidden");
       }
     });
@@ -100,18 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Pre-load default apple image on startup & run initial analysis
-  currentProduceKey = "apple";
-  currentBase64 = SAMPLE_IMAGES.apple;
-  if (imagePreview) imagePreview.src = SAMPLE_IMAGES.apple;
-  if (dropzoneContent) dropzoneContent.classList.add("hidden");
-  if (previewContainer) previewContainer.classList.remove("hidden");
-
-  // Auto run initial analysis on startup
-  setTimeout(() => {
-    runProduceAnalysis();
-  }, 300);
-
   // --- 1. FILE UPLOAD & PRESET DRAG-DROP HANDLERS ---
   if (browseBtn) {
     browseBtn.addEventListener("click", (e) => {
@@ -120,11 +123,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  dropzone.addEventListener("click", (e) => {
-    if (e.target.id !== "browseBtn" && e.target.id !== "fileInput" && !e.target.classList.contains("btn-remove") && !e.target.closest("#open4kModalBtn")) {
-      fileInput.click();
-    }
-  });
+  if (dropzone) {
+    dropzone.addEventListener("click", (e) => {
+      if (e.target.id !== "browseBtn" && e.target.id !== "fileInput" && !e.target.classList.contains("btn-remove") && !e.target.closest("#open4kModalBtn")) {
+        fileInput.click();
+      }
+    });
+  }
 
   if (previewContainer) {
     previewContainer.addEventListener("click", (e) => {
@@ -140,41 +145,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  dropzone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropzone.classList.add("dragover");
-  });
+  if (dropzone) {
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.classList.add("dragover");
+    });
 
-  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
 
-  dropzone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropzone.classList.remove("dragover");
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleImageFile(e.dataTransfer.files[0]);
-    }
-  });
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleImageFile(e.dataTransfer.files[0]);
+      }
+    });
+  }
 
   function handleImageFile(file) {
     if (!file) return;
+
     currentFile = file;
-
-    const fname = file.name ? file.name.toLowerCase() : "";
-    let detectedKey = "coconut";
-    const knownProduce = ["apple", "tomato", "banana", "orange", "spinach", "potato", "mango", "carrot", "lemon", "cucumber", "avocado", "strawberry", "watermelon", "onion", "garlic", "broccoli"];
-    
-    for (const key of knownProduce) {
-      if (fname.includes(key)) {
-        detectedKey = key;
-        break;
-      }
-    }
-
-    if (fname.includes("coco") || fname.includes("nut") || detectedKey === "coconut") {
-      detectedKey = "coconut";
-    }
-
-    currentProduceKey = detectedKey;
+    currentBase64 = null;
+    currentProduceKey = "";
+    currentProduceName = "";
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -183,113 +177,129 @@ document.addEventListener("DOMContentLoaded", () => {
       if (dropzoneContent) dropzoneContent.classList.add("hidden");
       if (previewContainer) previewContainer.classList.remove("hidden");
       
-      // Auto analyze uploaded produce image immediately
+      // Auto analyze uploaded produce image with Google Gemini AI
       runProduceAnalysis();
     };
     reader.readAsDataURL(file);
     fileInput.value = "";
   }
 
-  removeImgBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    currentFile = null;
-    currentBase64 = SAMPLE_IMAGES.apple;
-    currentProduceKey = "apple";
-    imagePreview.src = SAMPLE_IMAGES.apple;
-    previewContainer.classList.add("hidden");
-    dropzoneContent.classList.remove("hidden");
-    fileInput.value = "";
-    runProduceAnalysis();
-  });
-
-  // Preset Sample Chips
-  document.querySelectorAll(".chip").forEach((chip) => {
+  // Preset Chips Event Listeners
+  presetChips.forEach((chip) => {
     chip.addEventListener("click", (e) => {
-      document.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+      e.stopPropagation();
+      presetChips.forEach((c) => c.classList.remove("active"));
       chip.classList.add("active");
-      const sampleKey = chip.dataset.sample;
-      currentProduceKey = sampleKey;
 
-      if (SAMPLE_IMAGES[sampleKey]) {
-        currentBase64 = SAMPLE_IMAGES[sampleKey];
+      const key = chip.getAttribute("data-sample");
+      if (SAMPLE_IMAGES[key]) {
+        currentProduceKey = key;
         currentFile = null;
-        imagePreview.src = currentBase64;
-        dropzoneContent.classList.add("hidden");
-        previewContainer.classList.remove("hidden");
-        
-        // Auto analyze selected sample produce immediately
+        currentBase64 = SAMPLE_IMAGES[key];
+        if (imagePreview) imagePreview.src = SAMPLE_IMAGES[key];
+        if (dropzoneContent) dropzoneContent.classList.add("hidden");
+        if (previewContainer) previewContainer.classList.remove("hidden");
+
         runProduceAnalysis();
       }
     });
   });
 
+  if (removeImgBtn) {
+    removeImgBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      currentFile = null;
+      currentBase64 = null;
+      currentProduceKey = "";
+      currentProduceName = "";
+      if (imagePreview) imagePreview.src = "";
+      if (previewContainer) previewContainer.classList.add("hidden");
+      if (dropzoneContent) dropzoneContent.classList.remove("hidden");
+      if (resultCard) resultCard.classList.add("hidden");
+      fileInput.value = "";
+    });
+  }
+
   // --- 2. WEBCAM STREAM CONTROLLER ---
-  webcamBtn.addEventListener("click", async () => {
-    try {
-      mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      webcamVideo.srcObject = mediaStream;
-      videoContainer.classList.remove("hidden");
-      dropzone.classList.add("hidden");
-    } catch (err) {
-      alert("Unable to access camera: " + err.message);
-    }
-  });
+  if (webcamBtn) {
+    webcamBtn.addEventListener("click", async () => {
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        webcamVideo.srcObject = mediaStream;
+        videoContainer.classList.remove("hidden");
+        dropzone.classList.add("hidden");
+      } catch (err) {
+        alert("Unable to access camera: " + err.message);
+      }
+    });
+  }
 
-  captureBtn.addEventListener("click", () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = webcamVideo.videoWidth || 640;
-    canvas.height = webcamVideo.videoHeight || 480;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(webcamVideo, 0, 0, canvas.width, canvas.height);
-    currentBase64 = canvas.toDataURL("image/png");
-    currentFile = null;
+  if (captureBtn) {
+    captureBtn.addEventListener("click", () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = webcamVideo.videoWidth || 640;
+      canvas.height = webcamVideo.videoHeight || 480;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(webcamVideo, 0, 0, canvas.width, canvas.height);
 
-    imagePreview.src = currentBase64;
-    dropzoneContent.classList.add("hidden");
-    previewContainer.classList.remove("hidden");
-    stopWebcam();
-    
-    // Auto analyze captured camera snapshot
-    runProduceAnalysis();
-  });
+      currentBase64 = canvas.toDataURL("image/jpeg");
+      currentFile = null;
+      currentProduceKey = "";
+      currentProduceName = "";
 
-  closeCameraBtn.addEventListener("click", stopWebcam);
+      if (imagePreview) imagePreview.src = currentBase64;
+      if (dropzoneContent) dropzoneContent.classList.add("hidden");
+      if (previewContainer) previewContainer.classList.remove("hidden");
+      stopWebcam();
+      
+      runProduceAnalysis();
+    });
+  }
+
+  if (closeCameraBtn) {
+    closeCameraBtn.addEventListener("click", stopWebcam);
+  }
 
   function stopWebcam() {
     if (mediaStream) {
       mediaStream.getTracks().forEach((track) => track.stop());
       mediaStream = null;
     }
-    videoContainer.classList.add("hidden");
-    dropzone.classList.remove("hidden");
+    if (videoContainer) videoContainer.classList.add("hidden");
+    if (dropzone) dropzone.classList.remove("hidden");
   }
 
-  // --- 3. ANALYZE FRESHNESS ACTION ---
-  analyzeBtn.addEventListener("click", () => {
-    runProduceAnalysis();
-  });
+  // --- 3. ANALYZE FRESHNESS ACTION (GOOGLE GEMINI AI VISION) ---
+  if (analyzeBtn) {
+    analyzeBtn.addEventListener("click", () => {
+      runProduceAnalysis();
+    });
+  }
 
   async function runProduceAnalysis() {
-    if (!currentFile && !currentBase64) {
-      currentProduceKey = "apple";
-      currentBase64 = SAMPLE_IMAGES.apple;
-      imagePreview.src = SAMPLE_IMAGES.apple;
-      dropzoneContent.classList.add("hidden");
-      previewContainer.classList.remove("hidden");
+    if (!currentBase64 && !currentFile) {
+      alert("Please select or upload a produce photo first.");
+      return;
     }
 
     analyzeBtn.disabled = true;
-    analyzeBtn.innerHTML = `✨ Analyzing with Google Gemini AI...`;
+    analyzeBtn.innerHTML = `✨ Inspecting with Google Gemini AI...`;
 
     try {
-      const payloadFilename = currentFile ? currentFile.name : `${currentProduceKey}.jpg`;
+      let cleanBase64 = currentBase64 || "";
+      if (cleanBase64.includes("base64,")) {
+        cleanBase64 = cleanBase64.split("base64,")[1];
+      }
+      cleanBase64 = cleanBase64.replace(/^data:image\/\w+;base64,/, "").trim();
+
+      const payloadFilename = currentFile ? currentFile.name : `${currentProduceKey || 'produce'}.jpg`;
 
       const response = await fetch("/api/analyze-freshness", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           itemKey: currentProduceKey,
-          imageBase64: currentBase64,
+          imageBase64: cleanBase64,
           filename: payloadFilename
         })
       });
@@ -298,9 +308,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (analysisResult.success) {
         renderFreshnessResult(analysisResult);
+      } else {
+        alert("AI Vision Analysis Error: " + (analysisResult.error || "Failed to analyze image."));
       }
     } catch (err) {
-      console.error(err);
+      console.error("[AgriFresh AI] Analysis fetch error:", err);
+      alert("Network Error: Could not connect to AI Vision backend server.");
     } finally {
       analyzeBtn.disabled = false;
       analyzeBtn.innerHTML = `✨ Analyze with Google Gemini AI`;
@@ -308,72 +321,78 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderFreshnessResult(data) {
-    currentProduceKey = data.item.key;
-    const produceName = data.item.name;
+    currentProduceKey = data.item.key || (data.item.name || "produce").toLowerCase().replace(/[^a-z0-9]/g, "");
+    currentProduceName = data.item.name || "Fresh Produce";
 
-    resultProduceName.textContent = produceName;
-    resultCategory.textContent = `${data.item.category} • ${data.item.scientificName} • ✨ Google Gemini AI Analyzed`;
-
-    const statusText = data.quality.conditionLabel || (data.quality.isFresh ? "🟢 Fresh Product" : "🔴 Old / Spoiled Product");
-    freshnessBadge.textContent = statusText;
-
-    let badgeClass = "fresh";
-    if (statusText.includes("Average")) badgeClass = "average";
-    if (statusText.includes("Old") || statusText.includes("Spoiled")) badgeClass = "spoiled";
-
-    freshnessBadge.className = `status-badge ${badgeClass}`;
-
-    const score = data.quality.scorePercentage;
-    scoreText.textContent = `${score}%`;
-    scoreCircle.style.background = `conic-gradient(${getStatusColor(badgeClass)} ${score}%, rgba(255, 255, 255, 0.1) 0)`;
-
-    // Google Gemini Extracted Summary Box Updates
-    const summaryName = document.getElementById("summaryName");
-    const summaryFreshness = document.getElementById("summaryFreshness");
-    const summaryProtein = document.getElementById("summaryProtein");
-    const summaryCategory = document.getElementById("summaryCategory");
-
-    if (summaryName) summaryName.textContent = produceName;
-    if (summaryFreshness) summaryFreshness.textContent = statusText;
-    if (summaryProtein) summaryProtein.textContent = `${data.nutrition.protein || '1.0g'} per 100g`;
-    if (summaryCategory) summaryCategory.textContent = data.item.category;
-
-    shelfLifeVal.textContent = data.quality.estimatedRemainingShelfLife;
-    firmnessVal.textContent = data.quality.firmness;
-    defectVal.textContent = data.quality.spotDefectsPercent;
-
-    storageTipsText.textContent = data.storageAdvice;
-
-    const storageHeader = document.getElementById("storageTipsHeader");
-    if (storageHeader) storageHeader.textContent = `💡 Google Gemini Preservation Advice for ${produceName}`;
-
-    const nutritionHeader = document.getElementById("nutritionHeader");
-    if (nutritionHeader) nutritionHeader.textContent = `🥗 Nutritional Breakdown for ${produceName} (per 100g)`;
-
-    const benchmarkTitle = document.getElementById("benchmarkTitle");
-    if (benchmarkTitle) benchmarkTitle.textContent = `AGMARKNET APMC Rate for ${produceName}`;
-
-    nutritionTags.innerHTML = Object.entries(data.nutrition)
-      .map(([k, v]) => `<span class="tag">${capitalize(k)}: ${v}</span>`)
-      .join("");
-
-    purchaseItemName.textContent = produceName;
-    if (selectedProduceName) {
-      selectedProduceName.textContent = currentPlaceName ? `${produceName} near ${currentPlaceName}` : produceName;
+    // 1. Result Card Header
+    if (resultProduceName) resultProduceName.textContent = currentProduceName;
+    if (resultCategory) {
+      resultCategory.textContent = `${data.item.category} • ${data.item.scientificName} • ✨ Google Gemini AI`;
     }
 
-    resultCard.classList.remove("hidden");
-    resultCard.scrollIntoView({ behavior: "smooth" });
+    // 2. Freshness Badge
+    const statusText = data.quality.conditionLabel || data.quality.status || "Fresh";
+    if (freshnessBadge) {
+      freshnessBadge.textContent = statusText.includes("Fresh") ? "Fresh" : (statusText.includes("Medium") ? "Medium" : "Spoiled");
+      let badgeClass = data.quality.statusBadgeClass || "fresh";
+      if (!data.quality.statusBadgeClass) {
+        if (statusText.toLowerCase().includes("medium") || statusText.toLowerCase().includes("average")) badgeClass = "average";
+        if (statusText.toLowerCase().includes("spoil") || statusText.toLowerCase().includes("rot")) badgeClass = "spoiled";
+      }
+      freshnessBadge.className = `status-badge ${badgeClass}`;
+    }
+
+    // 3. Quality Metrics Grid
+    const score = Number(data.quality.scorePercentage) || 92;
+    if (scoreText) scoreText.textContent = `${score}%`;
+    if (scoreCircle) {
+      const badgeClass = freshnessBadge ? freshnessBadge.className : "fresh";
+      scoreCircle.style.background = `conic-gradient(${getStatusColor(badgeClass)} ${score}%, rgba(255, 255, 255, 0.1) 0)`;
+    }
+
+    if (shelfLifeVal) shelfLifeVal.textContent = data.quality.estimatedRemainingShelfLife;
+    if (firmnessVal) firmnessVal.textContent = data.quality.firmness;
+    if (defectVal) defectVal.textContent = data.quality.spotDefectsPercent;
+
+    // 4. Preservation & Storage Advice
+    if (storageTipsHeader) storageTipsHeader.textContent = `💡 Google Gemini Preservation Advice for ${currentProduceName}`;
+    if (storageTipsText) storageTipsText.textContent = data.storageAdvice;
+
+    // 5. Nutritional Breakdown
+    if (nutritionHeader) nutritionHeader.textContent = `🥗 Nutritional Breakdown for ${currentProduceName} (per 100g)`;
+    if (nutritionTags && data.nutrition) {
+      const nut = data.nutrition;
+      nutritionTags.innerHTML = `
+        <span class="tag">Calories: ${nut.calories || '52 kcal'}</span>
+        <span class="tag">Vitamin C: ${nut.vitamins || '14%'}</span>
+        <span class="tag">Fiber: ${nut.fiber || '2.4g'}</span>
+        <span class="tag">Protein: ${nut.protein || '0.3g'}</span>
+      `;
+    }
+
+    // 6. Google Gemini AI Summary Box
+    if (summaryName) summaryName.textContent = currentProduceName;
+    if (summaryFreshness) summaryFreshness.textContent = statusText;
+    if (summaryProtein) summaryProtein.textContent = `${(data.nutrition && data.nutrition.protein) || '0.3g'} per 100g`;
+    if (summaryCategory) summaryCategory.textContent = `${data.item.category} (${data.quality.isFresh ? 'Fresh' : 'Spoiled'})`;
+
+    // 7. Purchase Callout & Store Locator Header
+    if (purchaseItemName) purchaseItemName.textContent = currentProduceName;
+    if (selectedProduceName) {
+      selectedProduceName.textContent = currentPlaceName ? `${currentProduceName} near ${currentPlaceName}` : currentProduceName;
+    }
+
+    // 8. Show Result Card
+    if (resultCard) {
+      resultCard.classList.remove("hidden");
+      resultCard.scrollIntoView({ behavior: "smooth" });
+    }
   }
 
-  function getStatusColor(status) {
-    if (status === "Fresh" || status.includes("Good")) return "#10b981";
-    if (status === "Average") return "#f59e0b";
-    return "#ef4444";
-  }
-
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+  function getStatusColor(statusStr) {
+    if (statusStr.includes("spoiled") || statusStr.includes("rot")) return "#ef4444";
+    if (statusStr.includes("average") || statusStr.includes("medium")) return "#f59e0b";
+    return "#10b981";
   }
 
   // --- 4. REAL-TIME GPS LOCATION & MAP LOGIC ---
@@ -387,33 +406,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Auto trigger permission request on scroll to storeSection or page load
-  let locationRequested = false;
-
-  function triggerLocationOnScroll() {
-    if (!locationRequested && storeSection) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !locationRequested) {
-            locationRequested = true;
-            detectUserGPS();
-          }
-        });
-      }, { threshold: 0.1 });
-      observer.observe(storeSection);
-    }
+  if (purchaseNowBtn) {
+    purchaseNowBtn.addEventListener("click", () => {
+      if (storeSection) storeSection.classList.remove("hidden");
+      if (selectedProduceName) selectedProduceName.textContent = currentProduceName || "Produce";
+      if (storeSection) storeSection.scrollIntoView({ behavior: "smooth" });
+      detectUserGPS();
+    });
   }
-  triggerLocationOnScroll();
 
-  purchaseNowBtn.addEventListener("click", () => {
-    storeSection.classList.remove("hidden");
-    selectedProduceName.textContent = resultProduceName.textContent;
-    storeSection.scrollIntoView({ behavior: "smooth" });
-    detectUserGPS();
-  });
-
-  detectLocationBtn.addEventListener("click", () => detectUserGPS(true));
-  radiusSelect.addEventListener("change", fetchStoresAndPrices);
+  if (detectLocationBtn) detectLocationBtn.addEventListener("click", () => detectUserGPS(true));
+  if (radiusSelect) radiusSelect.addEventListener("change", fetchStoresAndPrices);
 
   function detectUserGPS(userInitiated = false) {
     if ("geolocation" in navigator) {
@@ -439,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { timeout: 10000, enableHighAccuracy: true }
       );
     } else {
-      if (geoNotification) geoNotification.classList.remove("hidden");
+      if (geoNotification) geoNotification.classList.add("hidden");
       fetchStoresAndPrices();
     }
   }
@@ -447,7 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchStoresAndPrices() {
     const radius = radiusSelect ? (radiusSelect.value || 20) : 20;
     try {
-      const url = `/api/nearby-stores?lat=${userCoords.lat}&lng=${userCoords.lng}&itemKey=${currentProduceKey}&radius=${radius}&placeName=${encodeURIComponent(currentPlaceName)}`;
+      const url = `/api/nearby-stores?lat=${userCoords.lat}&lng=${userCoords.lng}&itemKey=${encodeURIComponent(currentProduceKey || 'apple')}&radius=${radius}&placeName=${encodeURIComponent(currentPlaceName)}`;
       const res = await fetch(url);
       const data = await res.json();
 
@@ -462,12 +465,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderAgmarknetBanner(benchmark) {
-    mandiPriceVal.textContent = benchmark.mandiWholesaleRate;
-    mandiTrendVal.textContent = benchmark.trend;
-    mandiGradeVal.textContent = benchmark.grade;
+    if (benchmarkTitle) benchmarkTitle.textContent = `AGMARKNET APMC Rate for ${currentProduceName || "Produce"}`;
+    if (mandiPriceVal) mandiPriceVal.textContent = benchmark.mandiWholesaleRate;
+    if (mandiTrendVal) mandiTrendVal.textContent = benchmark.trend;
+    if (mandiGradeVal) mandiGradeVal.textContent = benchmark.grade;
   }
 
   function renderStoreList(storePrices, stores) {
+    if (!storesList) return;
     storesList.innerHTML = "";
 
     storePrices.forEach((sp) => {
@@ -503,6 +508,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function initLeafletMap(userLoc, stores) {
+    const mapContainer = document.getElementById("map");
+    if (!mapContainer) return;
+
     if (!leafletMap) {
       leafletMap = L.map("map").setView([userLoc.lat, userLoc.lng], 14);
       L.tileLayer("http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
@@ -516,7 +524,6 @@ document.addEventListener("DOMContentLoaded", () => {
       mapMarkers = [];
     }
 
-    // Custom Pulsing "Your Location / Searched Place" Marker
     const locationIcon = L.divIcon({
       className: "custom-location-marker",
       html: '<div class="pulse-marker">📍</div>',
@@ -539,14 +546,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- 5. MAP PLACE SEARCH & GOOGLE MAP LAYER TOGGLE ---
+  // --- 5. MAP PLACE SEARCH ---
   const mapSearchInput = document.getElementById("mapSearchInput");
   const mapSearchBtn = document.getElementById("mapSearchBtn");
-  const layerGoogleBtn = document.getElementById("layerGoogleBtn");
-  const layerOsmBtn = document.getElementById("layerOsmBtn");
-
-  let currentMapLayer = "google";
-  let tileLayerGroup = null;
 
   if (mapSearchBtn && mapSearchInput) {
     mapSearchBtn.addEventListener("click", performPlaceSearch);
@@ -573,7 +575,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (detectLocationBtn) detectLocationBtn.innerHTML = `📍 ${currentPlaceName}`;
         if (selectedProduceName) {
-          selectedProduceName.textContent = `${resultProduceName.textContent || 'Produce'} near ${currentPlaceName}`;
+          selectedProduceName.textContent = `${currentProduceName || 'Produce'} near ${currentPlaceName}`;
         }
 
         fetchStoresAndPrices();
@@ -588,62 +590,27 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  if (layerGoogleBtn && layerOsmBtn) {
-    layerGoogleBtn.addEventListener("click", () => {
-      currentMapLayer = "google";
-      layerGoogleBtn.classList.add("active");
-      layerOsmBtn.classList.remove("active");
-      switchMapTileLayer();
-    });
-
-    layerOsmBtn.addEventListener("click", () => {
-      currentMapLayer = "osm";
-      layerOsmBtn.classList.add("active");
-      layerGoogleBtn.classList.remove("active");
-      switchMapTileLayer();
-    });
-  }
-
-  function switchMapTileLayer() {
-    if (!leafletMap) return;
-    if (tileLayerGroup) leafletMap.removeLayer(tileLayerGroup);
-
-    if (currentMapLayer === "google") {
-      tileLayerGroup = L.tileLayer("http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
-        maxZoom: 20,
-        subdomains: ["mt0", "mt1", "mt2", "mt3"],
-        attribution: "&copy; Google Maps"
-      });
-    } else {
-      tileLayerGroup = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors"
-      });
-    }
-    tileLayerGroup.addTo(leafletMap);
-  }
-
   // --- 6. CHECKOUT MODAL & ORDER PROCESSING ---
   window.openOrderModal = (storeId, storeName, pricePerKg) => {
     selectedStoreForOrder = { storeId, storeName, pricePerKg };
-    modalStoreName.textContent = storeName;
-    modalItemName.textContent = resultProduceName.textContent || "Red Gala Apple";
-    modalUnitPrice.textContent = `$${pricePerKg.toFixed(2)} / kg`;
-    orderQtyInput.value = 2;
+    if (modalStoreName) modalStoreName.textContent = storeName;
+    if (modalItemName) modalItemName.textContent = currentProduceName || "Fresh Produce";
+    if (modalUnitPrice) modalUnitPrice.textContent = `$${pricePerKg.toFixed(2)} / kg`;
+    if (orderQtyInput) orderQtyInput.value = 2;
     updateModalTotal();
 
     const orderSuccessState = document.getElementById("orderSuccessState");
-    const checkoutForm = document.getElementById("checkoutForm");
     if (orderSuccessState) orderSuccessState.classList.add("hidden");
     if (checkoutForm) checkoutForm.classList.remove("hidden");
     if (closeOrderModalBtn) closeOrderModalBtn.classList.remove("hidden");
 
-    orderModal.classList.remove("hidden");
+    if (orderModal) orderModal.classList.remove("hidden");
   };
 
   const closeSuccessBtn = document.getElementById("closeSuccessBtn");
   if (closeSuccessBtn) {
     closeSuccessBtn.addEventListener("click", () => {
-      orderModal.classList.add("hidden");
+      if (orderModal) orderModal.classList.add("hidden");
     });
   }
 
@@ -651,7 +618,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (undoOrderBtn) {
     undoOrderBtn.addEventListener("click", () => {
       const orderSuccessState = document.getElementById("orderSuccessState");
-      const checkoutForm = document.getElementById("checkoutForm");
       if (orderSuccessState) orderSuccessState.classList.add("hidden");
       if (checkoutForm) checkoutForm.classList.remove("hidden");
       if (closeOrderModalBtn) closeOrderModalBtn.classList.remove("hidden");
@@ -662,7 +628,7 @@ document.addEventListener("DOMContentLoaded", () => {
     closeOrderModalBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      orderModal.classList.add("hidden");
+      if (orderModal) orderModal.classList.add("hidden");
     });
   }
 
@@ -671,7 +637,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateModalTotal() {
-    if (!selectedStoreForOrder) return;
+    if (!selectedStoreForOrder || !modalTotalPayable || !orderQtyInput) return;
     const qty = parseFloat(orderQtyInput.value) || 1;
     const total = qty * selectedStoreForOrder.pricePerKg;
     modalTotalPayable.textContent = `$${total.toFixed(2)}`;
@@ -707,7 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const orderSuccessState = document.getElementById("orderSuccessState");
           const successOrderDetails = document.getElementById("successOrderDetails");
           if (successOrderDetails) {
-            successOrderDetails.textContent = `Order #${data.order.orderId} placed with ${selectedStoreForOrder.storeName} (${qty} kg ${modalItemName.textContent}). Total Paid: $${data.order.totalAmount.toFixed(2)}`;
+            successOrderDetails.textContent = `Order #${data.order.orderId} placed with ${selectedStoreForOrder.storeName} (${qty} kg ${modalItemName.textContent}). Total Paid: $${data.order.totalAmount ? data.order.totalAmount.toFixed(2) : (qty * selectedStoreForOrder.pricePerKg).toFixed(2)}`;
           }
           if (checkoutForm) checkoutForm.classList.add("hidden");
           if (closeOrderModalBtn) closeOrderModalBtn.classList.add("hidden");
@@ -725,4 +691,5 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
 });
