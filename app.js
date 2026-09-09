@@ -1,6 +1,6 @@
 /**
  * AgriFresh Client Application Logic - Dynamic Google Gemini AI Vision Edition
- * Full Store Locator, GPS Auto-Detection, Leaflet Map & Agmarknet Daily Market Matching.
+ * Comprehensive Universal Produce Inspector (Chilli, Capsicum, Brinjal, Okra, Dragon Fruit, etc.)
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -325,21 +325,178 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderFallbackClientAnalysis(filename = "") {
     const fn = (filename || currentProduceKey || "").toLowerCase();
-    let name = "Red Gala Apple";
-    let category = "Fruit";
-    let scientificName = "Malus domestica";
-    let protein = "0.3g per 100g";
-    let calories = "52 kcal";
-    let vitaminC = "14%";
-    let fiber = "2.4g";
-    let shelfLife = "14 Days";
-    let firmness = "Firm & Crisp";
-    let defects = "4%";
-    let score = 92;
-    let status = "🟢 Fresh Product";
-    let storageAdvice = "Store in a cool, dry place or in the crisper drawer of your refrigerator. Keep away from ethylene-sensitive produce.";
 
-    if (fn.includes("coco") || fn.includes("nut")) {
+    let name = "Fresh Green Chilli";
+    let category = "Spice Vegetable";
+    let scientificName = "Capsicum frutescens";
+    let protein = "2.0g per 100g";
+    let calories = "40 kcal";
+    let vitaminC = "240%";
+    let fiber = "1.5g";
+    let shelfLife = "10-14 Days";
+    let firmness = "Firm & Pungent";
+    let defects = "0%";
+    let score = 95;
+    let status = "🟢 Fresh Product (നല്ലത്)";
+    let storageAdvice = "Store in a breathable paper bag inside the crisper drawer. Keep stems intact to prolong freshness.";
+
+    if (fn.includes("chilli") || fn.includes("chili") || fn.includes("mulaku") || fn.includes("mirchi")) {
+      const isRed = fn.includes("red") || fn.includes("chuvanna");
+      name = isRed ? "Fresh Red Chilli" : "Fresh Green Chilli";
+      category = "Spice Vegetable";
+      scientificName = isRed ? "Capsicum annuum" : "Capsicum frutescens";
+      protein = "2.0g per 100g";
+      calories = "40 kcal";
+      vitaminC = "240%";
+      fiber = "1.5g";
+      shelfLife = "10-14 Days";
+      firmness = "Firm & Pungent";
+      defects = "0%";
+      score = 95;
+    } else if (fn.includes("capsicum") || fn.includes("bell_pepper") || fn.includes("bellpepper")) {
+      name = "Green Capsicum / Bell Pepper";
+      category = "Capsicum Vegetable";
+      scientificName = "Capsicum annuum";
+      protein = "0.9g per 100g";
+      calories = "20 kcal";
+      vitaminC = "134%";
+      fiber = "1.7g";
+      shelfLife = "12 Days";
+      firmness = "Crisp & Thick";
+      defects = "1%";
+      score = 93;
+      storageAdvice = "Refrigerate unwashed in the crisper drawer for up to 2 weeks.";
+    } else if (fn.includes("brinjal") || fn.includes("eggplant") || fn.includes("vazhuthananga") || fn.includes("baingan")) {
+      name = "Fresh Purple Brinjal / Eggplant";
+      category = "Solanaceous Vegetable";
+      scientificName = "Solanum melongena";
+      protein = "1.0g per 100g";
+      calories = "25 kcal";
+      vitaminC = "4%";
+      fiber = "3.0g";
+      shelfLife = "7-9 Days";
+      firmness = "Spongy & Firm";
+      defects = "1%";
+      score = 91;
+      storageAdvice = "Store at cool room temperature away from direct sunlight or in a perforated bag in the fridge.";
+    } else if (fn.includes("okra") || fn.includes("ladies_finger") || fn.includes("ladiesfinger") || fn.includes("vendakka") || fn.includes("bhindi")) {
+      name = "Fresh Green Okra / Ladies Finger";
+      category = "Pod Vegetable";
+      scientificName = "Abelmoschus esculentus";
+      protein = "1.9g per 100g";
+      calories = "33 kcal";
+      vitaminC = "38%";
+      fiber = "3.2g";
+      shelfLife = "6-8 Days";
+      firmness = "Tender & Crisp";
+      defects = "0%";
+      score = 94;
+      storageAdvice = "Store dry in a paper bag inside the crisper drawer. Avoid moisture before cooking.";
+    } else if (fn.includes("dragon") || fn.includes("pitaya")) {
+      name = "Fresh Red Dragon Fruit";
+      category = "Cactus Fruit";
+      scientificName = "Selenicereus costaricensis";
+      protein = "1.2g per 100g";
+      calories = "60 kcal";
+      vitaminC = "34%";
+      fiber = "2.9g";
+      shelfLife = "10 Days";
+      firmness = "Slightly Soft & Juiced";
+      defects = "1%";
+      score = 95;
+      storageAdvice = "Store at room temperature until ripe, then refrigerate in a plastic bag for up to 2 weeks.";
+    } else if (fn.includes("guava") || fn.includes("perakka") || fn.includes("koyya")) {
+      name = "Fresh Organic Guava";
+      category = "Tropical Fruit";
+      scientificName = "Psidium guajava";
+      protein = "2.6g per 100g";
+      calories = "68 kcal";
+      vitaminC = "381%";
+      fiber = "5.4g";
+      shelfLife = "7 Days";
+      firmness = "Firm & Crunchy";
+      defects = "1%";
+      score = 93;
+      storageAdvice = "Store room temperature to ripen, then refrigerate for up to 4 days.";
+    } else if (fn.includes("papaya") || fn.includes("omakka") || fn.includes("pappaya")) {
+      name = "Fresh Ripened Papaya";
+      category = "Tropical Fruit";
+      scientificName = "Carica papaya";
+      protein = "0.5g per 100g";
+      calories = "43 kcal";
+      vitaminC = "103%";
+      fiber = "1.7g";
+      shelfLife = "5-7 Days";
+      firmness = "Soft & Yielding";
+      defects = "2%";
+      score = 92;
+      storageAdvice = "Refrigerate cut papaya wrapped tightly in plastic wrap for up to 3 days.";
+    } else if (fn.includes("watermelon") || fn.includes("thannimathan")) {
+      name = "Juicy Red Watermelon";
+      category = "Melon Fruit";
+      scientificName = "Citrullus lanatus";
+      protein = "0.6g per 100g";
+      calories = "30 kcal";
+      vitaminC = "14%";
+      fiber = "0.4g";
+      shelfLife = "14 Days";
+      firmness = "Dense & Hydrated";
+      defects = "0%";
+      score = 96;
+      storageAdvice = "Keep uncut watermelons at room temperature. Refrigerate sliced watermelon covered for up to 4 days.";
+    } else if (fn.includes("lemon") || fn.includes("naranga") || fn.includes("lime")) {
+      name = "Fresh Yellow Lemon";
+      category = "Citrus Fruit";
+      scientificName = "Citrus limon";
+      protein = "1.1g per 100g";
+      calories = "29 kcal";
+      vitaminC = "88%";
+      fiber = "2.8g";
+      shelfLife = "21 Days";
+      firmness = "Firm & Juicy";
+      defects = "0%";
+      score = 95;
+      storageAdvice = "Store in a sealed plastic bag in the refrigerator for up to 4 weeks.";
+    } else if (fn.includes("garlic") || fn.includes("veluthulli")) {
+      name = "Organic Garlic Bulb";
+      category = "Allium Bulb";
+      scientificName = "Allium sativum";
+      protein = "6.4g per 100g";
+      calories = "149 kcal";
+      vitaminC = "52%";
+      fiber = "2.1g";
+      shelfLife = "60 Days";
+      firmness = "Solid & Dry";
+      defects = "0%";
+      score = 97;
+      storageAdvice = "Store in a cool, dark, dry, mesh-ventilated area.";
+    } else if (fn.includes("onion") || fn.includes("savala") || fn.includes("ulli")) {
+      name = "Fresh Red Onion";
+      category = "Allium Bulb";
+      scientificName = "Allium cepa";
+      protein = "1.1g per 100g";
+      calories = "40 kcal";
+      vitaminC = "12%";
+      fiber = "1.7g";
+      shelfLife = "45 Days";
+      firmness = "Solid & Crisp";
+      defects = "1%";
+      score = 94;
+      storageAdvice = "Keep in a cool, dry, well-ventilated location away from potatoes.";
+    } else if (fn.includes("cauliflower") || fn.includes("gobi")) {
+      name = "Fresh White Cauliflower";
+      category = "Cruciferous Vegetable";
+      scientificName = "Brassica oleracea var. botrytis";
+      protein = "1.9g per 100g";
+      calories = "25 kcal";
+      vitaminC = "80%";
+      fiber = "2.0g";
+      shelfLife = "7-10 Days";
+      firmness = "Firm Curd";
+      defects = "1%";
+      score = 92;
+      storageAdvice = "Store head-down in a plastic bag inside the crisper drawer of the fridge.";
+    } else if (fn.includes("coco") || fn.includes("nut")) {
       name = "Fresh Brown Coconut";
       category = "Tropical Fruit / Nut";
       scientificName = "Cocos nucifera";
@@ -351,7 +508,7 @@ document.addEventListener("DOMContentLoaded", () => {
       firmness = "Hard & Fibrous";
       defects = "0%";
       score = 96;
-      storageAdvice = "Store whole unopened coconuts at room temperature for up to a month. Once opened, refrigerate fresh coconut meat and water for up to 5 days.";
+      storageAdvice = "Store whole unopened coconuts at room temperature for up to a month.";
     } else if (fn.includes("tomato")) {
       name = "Roma Tomato";
       category = "Vegetable / Fruit";
@@ -364,7 +521,7 @@ document.addEventListener("DOMContentLoaded", () => {
       firmness = "Plump & Juicy";
       defects = "2%";
       score = 90;
-      storageAdvice = "Store stem-side down at room temperature away from direct sunlight. Refrigerate only when fully ripe.";
+      storageAdvice = "Store stem-side down at room temperature away from direct sunlight.";
     } else if (fn.includes("banana")) {
       name = "Cavendish Banana";
       category = "Fruit";
@@ -377,7 +534,7 @@ document.addEventListener("DOMContentLoaded", () => {
       firmness = "Soft & Creamy";
       defects = "3%";
       score = 88;
-      storageAdvice = "Hang bananas on a hook at room temperature to avoid pressure bruising. Wrap stems in foil to slow ripening.";
+      storageAdvice = "Hang bananas on a hook at room temperature to avoid pressure bruising.";
     } else if (fn.includes("orange")) {
       name = "Valencia Orange";
       category = "Citrus Fruit";
@@ -390,7 +547,7 @@ document.addEventListener("DOMContentLoaded", () => {
       firmness = "Firm & Juicy";
       defects = "1%";
       score = 94;
-      storageAdvice = "Keep at room temperature for up to a week, or refrigerate in a mesh bag for up to a month.";
+      storageAdvice = "Keep at room temperature for up to a week, or refrigerate in a mesh bag.";
     } else if (fn.includes("spinach")) {
       name = "Baby Spinach";
       category = "Leafy Vegetable";
@@ -403,7 +560,7 @@ document.addEventListener("DOMContentLoaded", () => {
       firmness = "Tender & Crisp";
       defects = "2%";
       score = 91;
-      storageAdvice = "Wrap in dry paper towels and place in an airtight container in the fridge to absorb excess moisture.";
+      storageAdvice = "Wrap in dry paper towels and place in an airtight container in the fridge.";
     } else if (fn.includes("potato")) {
       name = "Russet Potato";
       category = "Tuber Vegetable";
@@ -416,7 +573,7 @@ document.addEventListener("DOMContentLoaded", () => {
       firmness = "Solid & Dense";
       defects = "1%";
       score = 93;
-      storageAdvice = "Store in a dark, cool, ventilated paper bag. Keep away from onions to prevent premature sprouting.";
+      storageAdvice = "Store in a dark, cool, ventilated paper bag.";
     } else if (fn.includes("cuc")) {
       name = "Crisp Green Cucumber";
       category = "Gourd Vegetable";
@@ -469,6 +626,20 @@ document.addEventListener("DOMContentLoaded", () => {
       defects = "0%";
       score = 96;
       storageAdvice = "Store at room temperature until fragrant and soft, then refrigerate for up to 5 days.";
+    } else if (fn.includes("rot") || fn.includes("spoil") || fn.includes("bad") || fn.includes("decay") || fn.includes("mold") || fn.includes("kedaya")) {
+      name = "Spoiled / Rotten Produce";
+      category = "Degraded Produce";
+      scientificName = "Spoiled Specimen";
+      protein = "0.4g per 100g";
+      calories = "20 kcal";
+      vitaminC = "0%";
+      fiber = "1.0g";
+      shelfLife = "0 Days (Expired)";
+      firmness = "Soft & Rotting";
+      defects = "80%";
+      score = 25;
+      status = "🔴 Spoiled / Bad Product (കേടായത് / ചീത്ത)";
+      storageAdvice = "⚠️ Discard immediately to prevent mold spores from spreading.";
     }
 
     const fallbackData = {
@@ -483,8 +654,8 @@ document.addEventListener("DOMContentLoaded", () => {
       quality: {
         status: status,
         conditionLabel: status,
-        statusBadgeClass: "fresh",
-        isFresh: true,
+        statusBadgeClass: status.includes("Spoiled") ? "spoiled" : "fresh",
+        isFresh: !status.includes("Spoiled"),
         scorePercentage: score,
         firmness: firmness,
         spotDefectsPercent: defects,
@@ -545,17 +716,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (nutritionTags && data.nutrition) {
       const nut = data.nutrition;
       nutritionTags.innerHTML = `
-        <span class="tag">Calories: ${nut.calories || '52 kcal'}</span>
-        <span class="tag">Vitamin C: ${nut.vitaminC || '14%'}</span>
-        <span class="tag">Fiber: ${nut.fiber || '2.4g'}</span>
-        <span class="tag">Protein: ${nut.protein || '0.3g'}</span>
+        <span class="tag">Calories: ${nut.calories || '40 kcal'}</span>
+        <span class="tag">Vitamin C: ${nut.vitaminC || '240%'}</span>
+        <span class="tag">Fiber: ${nut.fiber || '1.5g'}</span>
+        <span class="tag">Protein: ${nut.protein || '2.0g per 100g'}</span>
       `;
     }
 
     // 6. Google Gemini AI Summary Box
     if (summaryName) summaryName.textContent = currentProduceName;
     if (summaryFreshness) summaryFreshness.textContent = statusText;
-    if (summaryProtein) summaryProtein.textContent = `${(data.nutrition && data.nutrition.protein) || '0.3g per 100g'}`;
+    if (summaryProtein) summaryProtein.textContent = `${(data.nutrition && data.nutrition.protein) || '2.0g per 100g'}`;
     if (summaryCategory) summaryCategory.textContent = `${data.item.category} (${data.quality.isFresh ? 'Fresh' : 'Spoiled'})`;
 
     // 7. Purchase Callout & Store Locator Header
@@ -611,7 +782,6 @@ document.addEventListener("DOMContentLoaded", () => {
         async (pos) => {
           userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           
-          // Reverse geocode lat/lng to actual place name (e.g. Palakkad, Kochi)
           try {
             const revRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userCoords.lat}&lon=${userCoords.lng}`);
             const revData = await revRes.json();
@@ -652,7 +822,6 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchStoresAndPrices() {
     const radius = radiusSelect ? (parseFloat(radiusSelect.value) || 20) : 20;
 
-    // Update section description header
     const placeText = currentPlaceName || "Local Area";
     if (selectedProduceName) {
       selectedProduceName.textContent = `${currentProduceName || 'Produce'} near ${placeText}`;
@@ -681,12 +850,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function generateClientSideStoresAndPrices(lat, lng, itemKey, radiusKm) {
-    const key = (itemKey || "apple").toLowerCase();
-    let mandiPrice = 1.90;
+    const key = (itemKey || "produce").toLowerCase();
+    let mandiPrice = 1.50;
     let trend = "-1.5% vs yesterday";
     let grade = `A Grade ${currentProduceName || 'Fresh Produce'}`;
 
-    if (key.includes("potato")) { mandiPrice = 0.90; trend = "-1.1% vs yesterday"; grade = "New Crop Russet Potato"; }
+    if (key.includes("chilli") || key.includes("chili") || key.includes("mulaku")) { mandiPrice = 1.60; trend = "-2.1% vs yesterday"; grade = "Fresh Green Chilli A Grade"; }
+    else if (key.includes("capsicum")) { mandiPrice = 2.10; trend = "-1.0% vs yesterday"; grade = "Green Capsicum A Grade"; }
+    else if (key.includes("brinjal") || key.includes("eggplant")) { mandiPrice = 1.30; trend = "0.0% Stable"; grade = "Purple Brinjal A Grade"; }
+    else if (key.includes("okra") || key.includes("ladies")) { mandiPrice = 1.40; trend = "-1.8% vs yesterday"; grade = "Tender Okra Pods A Grade"; }
+    else if (key.includes("dragon")) { mandiPrice = 3.80; trend = "-3.0% vs yesterday"; grade = "Red Dragon Fruit Premium"; }
+    else if (key.includes("potato")) { mandiPrice = 0.90; trend = "-1.1% vs yesterday"; grade = "New Crop Russet Potato"; }
     else if (key.includes("coco")) { mandiPrice = 1.80; trend = "-1.5% vs yesterday"; grade = "A Grade Farm Coconut"; }
     else if (key.includes("tomato")) { mandiPrice = 1.50; trend = "-5.0% vs yesterday"; grade = "Grade A Roma Tomato"; }
     else if (key.includes("banana")) { mandiPrice = 1.20; trend = "+1.5% vs yesterday"; grade = "Premium Cavendish Banana"; }
@@ -818,7 +992,6 @@ document.addEventListener("DOMContentLoaded", () => {
       mapMarkers = [];
     }
 
-    // Invalidate map size so tiles render immediately without blank areas
     setTimeout(() => {
       if (leafletMap) leafletMap.invalidateSize();
     }, 250);
